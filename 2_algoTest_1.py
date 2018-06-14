@@ -28,7 +28,7 @@ fig, ax= plt.subplots()
 ax.axis('equal')
 
 # long_path = mf.getInterpolatedPath(pathList)
-long_path = mf.curvefit(pathList)
+long_path = mf.curvefit(pathList,2*pathList.shape[0])
 
 
 bot1_path = np.array([[0,0]])
@@ -56,7 +56,7 @@ for i in range(1, long_path.shape[0]):
 		bot1_path = np.append(bot1_path, [[long_path[i][0] + (final_dist - mf.bot_rad) * np.cos(bot1_theta), long_path[i][1] + (final_dist - mf.bot_rad) * np.sin(bot1_theta)]], axis = 0)
 		bot1_dist = np.append(bot1_dist, [(final_dist-mf.bot_rad)], axis = 0)
 
-bot1_path_smooth = bot1_path
+bot1_path_smooth = mf.curvefit(bot1_path,4*pathList.shape[0])
 
 # bot1_dist_initial = np.copy(bot1_dist)
 # bot1_dist = scipy.ndimage.minimum_filter1d(bot1_dist,size=25)

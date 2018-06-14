@@ -73,14 +73,14 @@ def getInterpolatedPath(pathList):
 
 	return long_path
 
-def curvefit(pathList) :
+def curvefit(pathList,length,order=6) :
 	x = pathList[:,0]
 	y = pathList[:,1]
-	order = 10
+	# order = 10
 	# print x
 	# print y
 	points = np.linspace(0,1,len(x))
-	new_points = np.linspace(0,1,5*len(x))
+	new_points = np.linspace(0,1,length)
 	x_coeff = np.polyfit(points,x,order)
 	y_coeff = np.polyfit(points,y,order)
 
@@ -188,6 +188,10 @@ def right_bot_path_generator(long_path, bot_angle):
 			bot2_dist = np.append(bot2_dist, [(final_dist-bot_rad / abs(np.sin(bot_angle)))], axis = 0)
 	
 	bot2_dist_initial = np.copy(bot2_dist)
+	
+	bot2_path = curvefit(bot2_path,2*bot2_path.shape[0])
+
+	return bot2_path
 	# bot2_dist = scipy.ndimage.minimum_filter1d(bot2_dist,size=25)
 	# bot2_dist = scipy_gaussian(bot2_dist,sigma=8)
 	# #bot2_dist = scipy.ndimage.median_filter(bot2_dist,size=10)
@@ -244,7 +248,6 @@ def right_bot_path_generator(long_path, bot_angle):
 	# 		bot2_path_smooth = np.append(bot2_path_smooth, [[np.nan, np.nan]], axis=0)
 	
 	# return bot2_path_smooth
-	return bot2_path
 	
 	
 	##########################################################################################
