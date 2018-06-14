@@ -3,7 +3,7 @@ import numpy as np
 import math
 from scipy.ndimage.filters import gaussian_filter as scipy_gaussian
 import scipy.ndimage
-
+import matplotlib.pyplot as plt
 # Set parameters for planner. Check ompl_demo.py for more available parameters
 runTime = 3
 plannerType = 'BFMTstar'#'BITstar' 'RRTstart'
@@ -38,17 +38,19 @@ def myClearance(x, y):
 
 
 def getPathPointAsList(path):
+	# print path
 	string = [s.strip() for s in path.splitlines()]
-
+	# print string
 	pathList = []
 	for i in string:
 		if i != '':
+			print i
 			pathList.append(i.split(" "))
-
+	# print pathList
 	for j in pathList:
 		j[0] = float(j[0])
 		j[1] = float(j[1])
-
+	# print pathList
 	return pathList
 
 
@@ -71,6 +73,42 @@ def getInterpolatedPath(pathList):
 
 	return long_path
 
+def curvefit(pathList) :
+	x = pathList[:,0]
+	y = pathList[:,1]
+	order = 10
+	# print x
+	# print y
+	points = np.linspace(0,1,len(x))
+	new_points = np.linspace(0,1,5*len(x))
+	x_coeff = np.polyfit(points,x,order)
+	y_coeff = np.polyfit(points,y,order)
+
+	func_x = np.poly1d(x_coeff)
+	func_y = np.poly1d(y_coeff)
+
+	new_x = func_x(new_points)
+	new_y = func_y(new_points)
+
+	pathList_new = np.empty([new_x.shape[0],pathList.shape[1]])
+	# print pathList_new.shape
+	pathList_new[:,0] = new_x
+	pathList_new[:,1] = new_y
+	# pathList_new[:,0] = new_x
+	# pathList_new[:,1] = new_y
+	
+	# plt.figure(2)
+	# plt.plot(new_x,new_y, 'o')
+	# plt.figure(212)
+	# plt.plot(pathList[0],pathList[1],'x')
+	# plt.show()
+	# print pathList_new[0]
+	# print pathList_new[2]
+	pathList_new = np.array(pathList_new)
+	return pathList_new
+
+
+
 
 def intersectWithCircle((x, y), (x_prev, y_prev), (center_x, center_y), r, angle_in_formation): #angle_in_formation in radians
         if (x-x_prev) == 0:
@@ -91,7 +129,7 @@ def intersectWithCircle((x, y), (x_prev, y_prev), (center_x, center_y), r, angle
 
         discriminant = B**2 - 4*A*C
         if discriminant < 0:
-                return False, ()
+                return False, (0,0)
         if discriminant == 0:
                 x_new = -(B/(2*A))
                 y_new = m*x_new + c
@@ -140,7 +178,7 @@ def right_bot_path_generator(long_path, bot_angle):
 	#					final_intersection = intersection
 	
 		current_theta = math.atan2(float(long_path[i][1] - long_path[i-1][1]), float(long_path[i][0] - long_path[i-1][0]))
-	        bot2_theta = current_theta + ( bot_angle)
+		bot2_theta = current_theta + ( bot_angle)
 	
 		if final_dist > 0.5:
 			bot2_path = np.append(bot2_path, [[long_path[i][0] + (0.5-bot_rad) * np.cos(bot2_theta), long_path[i][1] + (0.5-bot_rad) * np.sin(bot2_theta)]], axis = 0)

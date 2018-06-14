@@ -27,7 +27,9 @@ fig, ax= plt.subplots()
 #fig1, ax1= plt.subplots()
 ax.axis('equal')
 
-long_path = mf.getInterpolatedPath(pathList)
+# long_path = mf.getInterpolatedPath(pathList)
+long_path = mf.curvefit(pathList)
+
 
 bot1_path = np.array([[0,0]])
 bot1_dist = np.array([0.5-mf.bot_rad])
@@ -45,7 +47,7 @@ for i in range(1, long_path.shape[0]):
 #					final_intersection = intersection
 
 	current_theta = math.atan2(float(long_path[i][1] - long_path[i-1][1]), float(long_path[i][0] - long_path[i-1][0]))
-        bot1_theta = current_theta + math.pi/2
+	bot1_theta = current_theta + math.pi/2
 
 	if final_dist > 0.5:
 		bot1_path = np.append(bot1_path, [[long_path[i][0] + (0.5-mf.bot_rad) * np.cos(bot1_theta), long_path[i][1] + (0.5-mf.bot_rad) * np.sin(bot1_theta)]], axis = 0)
