@@ -188,62 +188,63 @@ def right_bot_path_generator(long_path, bot_angle):
 			bot2_dist = np.append(bot2_dist, [(final_dist-bot_rad / abs(np.sin(bot_angle)))], axis = 0)
 	
 	bot2_dist_initial = np.copy(bot2_dist)
-	bot2_dist = scipy.ndimage.minimum_filter1d(bot2_dist,size=25)
-	bot2_dist = scipy_gaussian(bot2_dist,sigma=8)
-	#bot2_dist = scipy.ndimage.median_filter(bot2_dist,size=10)
-	#bot2_dist = scipy_gaussian(bot2_dist,sigma=3)
-	#bot2_dist = scipy_gaussian(bot2_dist,sigma=10)
+	# bot2_dist = scipy.ndimage.minimum_filter1d(bot2_dist,size=25)
+	# bot2_dist = scipy_gaussian(bot2_dist,sigma=8)
+	# #bot2_dist = scipy.ndimage.median_filter(bot2_dist,size=10)
+	# #bot2_dist = scipy_gaussian(bot2_dist,sigma=3)
+	# #bot2_dist = scipy_gaussian(bot2_dist,sigma=10)
 	
 	
-	bot2_path_smooth_fwd = np.array([[0,0]])
-	bot2_forward_path = np.array([[0,0]])
-	for i in range(1, long_path.shape[0]):
-	#	ax.add_patch(plt.Circle((bot2_path_smooth[-1][0], bot2_path_smooth[-1][1]), bot_rad, color='g'))
-		current_theta = math.atan2(float(long_path[i][1] - long_path[i-1][1]), float(long_path[i][0] - long_path[i-1][0]))
-		bot2_theta = current_theta + (bot_angle)
-		next_pt =np.array([[long_path[i][0] + (bot2_dist[i]) * np.cos(bot2_theta), long_path[i][1] + (bot2_dist[i]) * np.sin(bot2_theta)]])
-		a = [next_pt[0][0] - long_path[i-1][0] , next_pt[0][1] - long_path[i-1][1]]
-		b = [bot2_path_smooth_fwd[-1][0] - long_path[i-1][0] , bot2_path_smooth_fwd[-1][1] - long_path[i-1][1]]
-		if np.cross(a,b) < 0:
-			bot2_path_smooth_fwd = np.append(bot2_path_smooth_fwd, next_pt, axis = 0)
-			bot2_forward_path = np.append(bot2_forward_path, next_pt, axis = 0)
-		else:
-	#		print "Pass"
-	#		ax.add_patch(plt.Circle((long_path[i][0], long_path[i][1]), 0.01, color='r'))
-			bot2_forward_path = np.append(bot2_forward_path, np.array([[np.nan, np.nan]]), axis = 0)
+	# bot2_path_smooth_fwd = np.array([[0,0]])
+	# bot2_forward_path = np.array([[0,0]])
+	# for i in range(1, long_path.shape[0]):
+	# #	ax.add_patch(plt.Circle((bot2_path_smooth[-1][0], bot2_path_smooth[-1][1]), bot_rad, color='g'))
+	# 	current_theta = math.atan2(float(long_path[i][1] - long_path[i-1][1]), float(long_path[i][0] - long_path[i-1][0]))
+	# 	bot2_theta = current_theta + (bot_angle)
+	# 	next_pt =np.array([[long_path[i][0] + (bot2_dist[i]) * np.cos(bot2_theta), long_path[i][1] + (bot2_dist[i]) * np.sin(bot2_theta)]])
+	# 	a = [next_pt[0][0] - long_path[i-1][0] , next_pt[0][1] - long_path[i-1][1]]
+	# 	b = [bot2_path_smooth_fwd[-1][0] - long_path[i-1][0] , bot2_path_smooth_fwd[-1][1] - long_path[i-1][1]]
+	# 	if np.cross(a,b) < 0:
+	# 		bot2_path_smooth_fwd = np.append(bot2_path_smooth_fwd, next_pt, axis = 0)
+	# 		bot2_forward_path = np.append(bot2_forward_path, next_pt, axis = 0)
+	# 	else:
+	# #		print "Pass"
+	# #		ax.add_patch(plt.Circle((long_path[i][0], long_path[i][1]), 0.01, color='r'))
+	# 		bot2_forward_path = np.append(bot2_forward_path, np.array([[np.nan, np.nan]]), axis = 0)
 				
 			
 	
 	
-	bot2_path_smooth_bck = np.array([[10,10]])
-	for i in range(long_path.shape[0]-1, 0, -1):
-	#	ax.add_patch(plt.Circle((bot2_path_smooth[-1][0], bot2_path_smooth[-1][1]), bot_rad, color='g'))
-		current_theta = math.atan2(float(long_path[i-1][1] - long_path[i][1]), float(long_path[i-1][0] - long_path[i][0]))
-		bot2_theta = current_theta + (np.pi + bot_angle)
-		next_pt =np.array([[long_path[i][0] + (bot2_dist[i]) * np.cos(bot2_theta), long_path[i][1] + (bot2_dist[i]) * np.sin(bot2_theta)]])
-		a = [next_pt[0][0] - long_path[i-1][0] , next_pt[0][1] - long_path[i-1][1]]
-		b = [bot2_path_smooth_bck[-1][0] - long_path[i-1][0] , bot2_path_smooth_bck[-1][1] - long_path[i-1][1]]
-		if np.cross(a,b) > 0:
-			bot2_path_smooth_bck = np.append(bot2_path_smooth_bck, next_pt, axis = 0)
-	#	else:
-	#		print "Pass"
-	#		ax.add_patch(plt.Circle((long_path[i][0], long_path[i][1]), 0.01, color='r'))
-	#		bot2_path_smooth_bck = np.append(bot2_path_smooth_bck, np.array([[np.nan, np.nan]]), axis = 0)
+	# bot2_path_smooth_bck = np.array([[10,10]])
+	# for i in range(long_path.shape[0]-1, 0, -1):
+	# #	ax.add_patch(plt.Circle((bot2_path_smooth[-1][0], bot2_path_smooth[-1][1]), bot_rad, color='g'))
+	# 	current_theta = math.atan2(float(long_path[i-1][1] - long_path[i][1]), float(long_path[i-1][0] - long_path[i][0]))
+	# 	bot2_theta = current_theta + (np.pi + bot_angle)
+	# 	next_pt =np.array([[long_path[i][0] + (bot2_dist[i]) * np.cos(bot2_theta), long_path[i][1] + (bot2_dist[i]) * np.sin(bot2_theta)]])
+	# 	a = [next_pt[0][0] - long_path[i-1][0] , next_pt[0][1] - long_path[i-1][1]]
+	# 	b = [bot2_path_smooth_bck[-1][0] - long_path[i-1][0] , bot2_path_smooth_bck[-1][1] - long_path[i-1][1]]
+	# 	if np.cross(a,b) > 0:
+	# 		bot2_path_smooth_bck = np.append(bot2_path_smooth_bck, next_pt, axis = 0)
+	# #	else:
+	# #		print "Pass"
+	# #		ax.add_patch(plt.Circle((long_path[i][0], long_path[i][1]), 0.01, color='r'))
+	# #		bot2_path_smooth_bck = np.append(bot2_path_smooth_bck, np.array([[np.nan, np.nan]]), axis = 0)
 				
-	#		bot2_path_smooth = np.append(bot2_path_smooth, [bot2_path_smooth[-1]], axis = 0)
+	# #		bot2_path_smooth = np.append(bot2_path_smooth, [bot2_path_smooth[-1]], axis = 0)
 		
 	
 	
-	bot2_path_smooth = np.array([[0,0]])
-	#print bot2_path_smooth_fwd.shape, bot2_path_smooth_bck[6]
-	for  k in range(bot2_forward_path.shape[0]):
-	#	print path_point.shape, bot2_path_smooth.shape
-		if bot2_forward_path[k].tolist() in bot2_path_smooth_bck.tolist():
-			bot2_path_smooth = np.append(bot2_path_smooth, [bot2_forward_path[k]], axis=0)
-		else:
-			bot2_path_smooth = np.append(bot2_path_smooth, [[np.nan, np.nan]], axis=0)
+	# bot2_path_smooth = np.array([[0,0]])
+	# #print bot2_path_smooth_fwd.shape, bot2_path_smooth_bck[6]
+	# for  k in range(bot2_forward_path.shape[0]):
+	# #	print path_point.shape, bot2_path_smooth.shape
+	# 	if bot2_forward_path[k].tolist() in bot2_path_smooth_bck.tolist():
+	# 		bot2_path_smooth = np.append(bot2_path_smooth, [bot2_forward_path[k]], axis=0)
+	# 	else:
+	# 		bot2_path_smooth = np.append(bot2_path_smooth, [[np.nan, np.nan]], axis=0)
 	
-	return bot2_path_smooth
+	# return bot2_path_smooth
+	return bot2_path
 	
 	
 	##########################################################################################
