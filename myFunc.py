@@ -14,7 +14,7 @@ fname= None
 bound = (0.0, 10.0) #Basically the step size
 start_pt = (0,0)
 goal_pt = (10,10)
-circularObstacles = [(3,1,1), (3,4,1), (8,2,2), (3,8,2), (6.5, 6.0, 0.5), (9,7,1), (6.5, 7.5, 0.5) ,(8, 5.5, 0.5)]
+circularObstacles = [(3,1,1), (3,4,1)]#(8,2,2), (3,8,2), (6.5, 6.0, 0.5), (9,7,1), (6.5, 7.5, 0.5) ,(8, 5.5, 0.5)]
 bot_rad = 0.13
 
 def distance_between_points(x1,y1,x2,y2):
@@ -28,13 +28,14 @@ def myClearance(x, y):
 			success = True
 		else:
 			success = False
+			obs = obstacles
 			break;
 	
-
+	print success
 	if (success): 
-		return 1
+		return 1,None
 	else:
-		return -1
+		return -1,obs
 
 
 def getPathPointAsList(path):
@@ -86,9 +87,13 @@ def curvefit(pathList,length,order=6) :
 
 	func_x = np.poly1d(x_coeff)
 	func_y = np.poly1d(y_coeff)
+	func_x_dot = func_x.deriv()
+	func_y_dot = func_y.deriv()
 
 	new_x = func_x(new_points)
 	new_y = func_y(new_points)
+	new_x_dot = func_x_dot(new_points)
+	new_y_dot = func_y_dot(new_points)
 
 	pathList_new = np.empty([new_x.shape[0],pathList.shape[1]])
 	# print pathList_new.shape
@@ -105,7 +110,37 @@ def curvefit(pathList,length,order=6) :
 	# print pathList_new[0]
 	# print pathList_new[2]
 	pathList_new = np.array(pathList_new)
-	return pathList_new
+	return pathList_new,new_x_dot,new_y_dot
+
+
+# def intersection_point((x,y),(x0,y0),obstacle) : 
+# 	m = math.atan2(float(y-y0)/float(x-x0))
+
+# 	c = y - (m*x)
+# 	p = obstacle[0]
+# 	q = obstacle[1]
+# 	r = obstacle[2]
+# 	A = m**2 + 1
+# 	B = 2*(m*c - m*q -p)
+# 	C = q**2 - r**2 + p**2 - 2*c*q + c**2
+# 	discriminant = B**2 - 4*A*C
+
+#  if discriminant < 0:
+#             return False, (0,0)
+#     if discriminant == 0:
+#             x_new = -(B/(2*A))
+#             y_new = m*x_new + c
+#             return True, (x_new, y_new)
+#     if discriminant > 0:
+#             x1 = ((-B) + math.sqrt(discriminant))/(2*A)
+#             y1 = m*x1 + c
+#             x2 = ((-B) - math.sqrt(discriminant))/(2*A)
+#             y2 = m*x2 + c
+
+#             if (((x1 - x)**2 + (y1 - y)**2) < ((x2 - x)**2 + (y2 - y)**2)):
+#                     return True, (x1, y1)
+#             else:
+#                     return True, (x2, y2)
 
 
 
