@@ -4,6 +4,7 @@ import math
 from scipy.ndimage.filters import gaussian_filter as scipy_gaussian
 import scipy.ndimage
 import matplotlib.pyplot as plt
+
 # Set parameters for planner. Check ompl_demo.py for more available parameters
 runTime = 3
 plannerType = 'BFMTstar'#'BITstar' 'RRTstart'
@@ -14,8 +15,10 @@ fname= None
 bound = (0.0, 10.0) #Basically the step size
 start_pt = (0,0)
 goal_pt = (10,10)
-circularObstacles = [(3,1,1), (3,4,1)]#(8,2,2), (3,8,2), (6.5, 6.0, 0.5), (9,7,1), (6.5, 7.5, 0.5) ,(8, 5.5, 0.5)]
+circularObstacles = [(8,2,2), (3,8,2), (6.5, 6.0, 0.5), (9,7,1), (6.5, 7.5, 0.5) ,(8, 5.5, 0.5)]
 bot_rad = 0.13
+bot_point = {}
+val2 = {}
 
 def distance_between_points(x1,y1,x2,y2):
 	return sqrt((x1-x2)**2 + (y1-y2)**2)
@@ -31,11 +34,11 @@ def myClearance(x, y):
 			obs = obstacles
 			break;
 	
-	print success
+	# print success
 	if (success): 
-		return 1,None
+		return 1
 	else:
-		return -1,obs
+		return -1
 
 
 def getPathPointAsList(path):
@@ -77,11 +80,8 @@ def getInterpolatedPath(pathList):
 def curvefit(pathList,length,order=6) :
 	x = pathList[:,0]
 	y = pathList[:,1]
-	# order = 10
-	# print x
-	# print y
 	points = np.linspace(0,1,len(x))
-	new_points = np.linspace(0,1,length)
+	new_points = np.linspace(0,1,2*length)
 	x_coeff = np.polyfit(points,x,order)
 	y_coeff = np.polyfit(points,y,order)
 
@@ -89,28 +89,46 @@ def curvefit(pathList,length,order=6) :
 	func_y = np.poly1d(y_coeff)
 	func_x_dot = func_x.deriv()
 	func_y_dot = func_y.deriv()
+	func_x_ddot = func_x_dot.deriv()
+	func_y_ddot = func_y_dot.deriv()
 
 	new_x = func_x(new_points)
 	new_y = func_y(new_points)
 	new_x_dot = func_x_dot(new_points)
 	new_y_dot = func_y_dot(new_points)
+	new_x_ddot = func_x_ddot(new_points)
+	new_y_ddot = func_y_ddot(new_points)
+
+	k = (abs(new_x_dot*new_y_ddot-new_y_dot*new_x_ddot)/(((new_x_dot)**2+(new_y_dot)**2)**1.5))
+	# print k
 
 	pathList_new = np.empty([new_x.shape[0],pathList.shape[1]])
-	# print pathList_new.shape
 	pathList_new[:,0] = new_x
 	pathList_new[:,1] = new_y
-	# pathList_new[:,0] = new_x
-	# pathList_new[:,1] = new_y
-	
-	# plt.figure(2)
-	# plt.plot(new_x,new_y, 'o')
-	# plt.figure(212)
-	# plt.plot(pathList[0],pathList[1],'x')
-	# plt.show()
-	# print pathList_new[0]
-	# print pathList_new[2]
 	pathList_new = np.array(pathList_new)
-	return pathList_new,new_x_dot,new_y_dot
+	return pathList_new,new_x_dot,new_y_dot,k
+
+def curvature(pathList,length,order = 3) :
+	x = pathList[:,0]
+	y = pathList[:,1]
+
+	y_coeff = np.polyfit(x,y,order)
+	func_y = np.poly1d(y_coeff)
+	func_y_dot = func_y.deriv()
+	func_y_ddot = func_y_dot.deriv()
+
+	new_points = np.linspace(x[0],x[-1],2*length)
+
+	new_y = func_y(new_points)
+	new_y_dot = func_y_dot(new_points)
+	new_y_ddot = func_y_ddot(new_points)
+
+	R = ((1+(new_y_dot)**2)**1.5)/(abs(new_y_ddot)) 
+
+	k = 1/R 
+	# print k
+
+	return k
 
 
 # def intersection_point((x,y),(x0,y0),obstacle) : 

@@ -30,8 +30,8 @@ new_bot_position[0] = {}
 new_bot_position[1] = {}
 
 
-robot_global[0] = [-1,0,1]
-robot_global[1] = [1,0,1]
+robot_global[0] = [0,2,1]
+robot_global[1] = [0,0,1]
 
 for i in range(NUM_ROBOTS) :
 	VS_reference[i]	=	[2*i-1,0,1]
@@ -42,6 +42,7 @@ for i in range(NUM_ROBOTS) :
 VS_path[0] = np.array([[0,0]])
 	
 def function(x):
+	global VS_reference,VS_global,robot_global
 	A = [[math.cos(x[2]),-1*math.sin(x[2]),x[0]],[math.sin(x[2]),math.cos(x[2]),x[1]],[0,0,1]]
 	cost_function = []
 	cost_function = np.array(cost_function)
@@ -62,61 +63,45 @@ guess = np.array([0,0,0])
 
 
 
-# while (abs(robot_global[i][0]-mf.goal_pt[0])>0.8 or abs(robot_global[i][1]-mf.goal_pt[1])>0.8) :
+while (abs(robot_global[i][0]-mf.goal_pt[0])>0.8 or abs(robot_global[i][1]-mf.goal_pt[1])>0.8) :
 	### LOOP FROM HERE	
 	
 	# print "x_solution.x ", x_solution.x
 	# print "x_solution.cost ", x_solution.cost
 	# print "x_solution.optimality ", x_solution.optimality
-re_plan = 0
-pathFound, path = odm.plan(mf.runTime, mf.plannerType, mf.objectiveType, mf.fname, mf.bound, mf.start_pt, mf.goal_pt)
-
-if pathFound:
-	pathList = mf.getPathPointAsList(path)
-	# print pathList
-	pathList = np.array(pathList) 
-else: 
-	print "Path not found"
-
-# long_path = pathList
-# vel_x = 0
-# vel_y = 0
-long_path,vel_x,vel_y = mf.curvefit(pathList,pathList.shape[0])
-
-
-for i in range(len(long_path)):
+	re_plan = 0
 	x_solution = least_squares(function,guess)
-	# theta = x_solution.x[2]
-	# print theta
-	# print math.atan2(vel_y[i],vel_x[i])
-	theta = math.atan2(vel_y[i],vel_x[i]) - (math.pi)/2
-	A_new = [[math.cos(theta),-1*math.sin(theta),long_path[i][0]],[math.sin(theta),math.cos(theta),long_path[i][1]],[0,0,1]]
+	pathFound, path = odm.plan(mf.runTime, mf.plannerType, mf.objectiveType, mf.fname, mf.bound, (x_solution.x[0],x_solution.x[1]), mf.goal_pt)
+
+	if pathFound:
+		pathList = mf.getPathPointAsList(path)
+		# print pathList
+		pathList = np.array(pathList) 
+	else: 
+		print "Path not found"
+
+
+	long_path,vel_x,vel_y = mf.curvefit(pathList,2*pathList.shape[0])
+
+	theta = math.atan2(vel_y[0],vel_x[0])
+
+	A_new = [[math.cos(theta),-1*math.sin(theta),long_path[1][0]],[math.sin(theta),math.cos(theta),long_path[1][1]],[0,0,1]]
 	# print A_new
 
-	for j in range(NUM_ROBOTS) :
-		new_bot_position[j] = np.matmul(A_new , VS_reference[j])
+	for i in range(NUM_ROBOTS) :
+		new_bot_position[i] = np.matmul(A_new , VS_reference[i])
 		# print "new_bot_position[i] :",new_bot_position[i]
 		# print i
-		flag = mf.myClearance(new_bot_position[j][0],new_bot_position[j][1])
+		flag,obstacle = mf.myClearance(new_bot_position[i][0],new_bot_position[i][1])
 		if flag== -1 :
 			re_plan=0
 
-	final_dist = 10
-	final_intersection = ()
-	for obstacles in mf.circularObstacles:
-		if (mf.circleOnLeft(long_path[i-1], long_path[i], obstacles)):
-			ret, intersection = mf.intersectWithCircle(tuple(long_path[i]), tuple(long_path[i-1]), (obstacles[0], obstacles[1]), obstacles[2], np.pi/2)
-			if ret == True:
-				current_dist = mf.distance_between_points(intersection[0], intersection[1], long_path[i][0], long_path[i][1])
-				if current_dist<final_dist:
-					final_dist = current_dist
-
-	for j in range(NUM_ROBOTS):
+	for i in range(NUM_ROBOTS):
 		if re_plan == 0 :
-			bot_path[j] = np.append(bot_path[j],[[new_bot_position[j][0],new_bot_position[j][1]]],axis=0)
-			VS_path[0] = np.append(VS_path[0],[[long_path[i][0],long_path[i][1]]],axis=0)
-			robot_global[j][0] = new_bot_position[j][0]
-			robot_global[j][1] = new_bot_position[j][1]
+			bot_path[i] = np.append(bot_path[i],[[new_bot_position[i][0],new_bot_position[i][1]]],axis=0)
+			VS_path[0] = np.append(VS_path[0],[[long_path[1][0],long_path[1][1]]],axis=0)
+			robot_global[i][0] = new_bot_position[i][0]
+			robot_global[i][1] = new_bot_position[i][1]
 		# else :
 		# 	re_plan = 1
 		# if flag == -1:
@@ -126,10 +111,10 @@ for i in range(len(long_path)):
 		# 		flag, obstacle = mf.myClearance(new_bot_position[i])
 
  
-# print bot_path[0]
-# print "------"
-# print bot_path[1]
-# print "------"
+print bot_path[0]
+print "------"
+print bot_path[1]
+print "------"
 
 
 # for i in range(len(bot_path[0])):
@@ -145,20 +130,15 @@ for obstacles in mf.circularObstacles:
 	ax.add_patch(plt.Circle((obstacles[0], obstacles[1]), obstacles[2], color='r'))
 
 bot1x, bot1y = bot_path[0].T
-bot2x, bot2y = bot_path[1].T
-VSx,VSy = VS_path[0].T
-# print bot1x
-# print "-------"
-# print bot1y
-# print "-------"
-# print VSx
-# print "-------"
-# print VSy
+print bot1x
+print "-------"
+print bot1y
 ax.plot(bot1x, bot1y, 'go-')
 
+bot2x, bot2y = bot_path[1].T
 ax.plot(bot2x, bot2y, 'ro-')
 
-ax.plot(VSx,VSy,'bo-')
+
 plt.show()
 exit()
 
