@@ -10,15 +10,16 @@ runTime = 3
 plannerType = 'BFMTstar'#'BITstar' 'RRTstart'
 objectiveType = 'PathLength'
 fname= None
-
+safety_margin = 0.3
 # Give start and goal points
 bound = (0.0, 10.0) #Basically the step size
 start_pt = (0,0)
 goal_pt = (10,10)
-circularObstacles = [(8,2,2), (3,8,2), (6.5, 6.0, 0.5), (9,7,1), (6.5, 7.5, 0.5) ,(8, 5.5, 0.5)]
+circularObstacles = [(5,8,4+safety_margin)]#[(8,2,2), (3,8,2), (6.5, 6.0, 0.5), (9,7,1), (6.5, 7.5, 0.5) ,(8, 5.5, 0.5)]
 bot_rad = 0.13
 bot_point = {}
 val2 = {}
+
 
 def distance_between_points(x1,y1,x2,y2):
 	return sqrt((x1-x2)**2 + (y1-y2)**2)
@@ -77,11 +78,11 @@ def getInterpolatedPath(pathList):
 
 	return long_path
 
-def curvefit(pathList,length,order=6) :
+def curvefit(pathList,length,order=3) :
 	x = pathList[:,0]
 	y = pathList[:,1]
 	points = np.linspace(0,1,len(x))
-	new_points = np.linspace(0,1,2*length)
+	new_points = np.linspace(0,1,length)
 	x_coeff = np.polyfit(points,x,order)
 	y_coeff = np.polyfit(points,y,order)
 
@@ -117,7 +118,7 @@ def curvature(pathList,length,order = 3) :
 	func_y_dot = func_y.deriv()
 	func_y_ddot = func_y_dot.deriv()
 
-	new_points = np.linspace(x[0],x[-1],2*length)
+	new_points = np.linspace(x[0],x[-1],length)
 
 	new_y = func_y(new_points)
 	new_y_dot = func_y_dot(new_points)
