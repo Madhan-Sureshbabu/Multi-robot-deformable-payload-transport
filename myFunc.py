@@ -10,12 +10,12 @@ runTime = 3
 plannerType = 'BFMTstar'#'BITstar' 'RRTstart'
 objectiveType = 'PathLength'
 fname= None
-safety_margin = 0.3
+safety_margin = 1
 # Give start and goal points
 bound = (0.0, 10.0) #Basically the step size
 start_pt = (0,0)
 goal_pt = (10,10)
-circularObstacles = [(5,8,4+safety_margin)]#[(8,2,2), (3,8,2), (6.5, 6.0, 0.5), (9,7,1), (6.5, 7.5, 0.5) ,(8, 5.5, 0.5)]
+circularObstacles = [(6, 2.5, 2),(4,8,2)]#,(8,4,0.5)]#[(8,2,2), (3,8,2), (6.5, 6.0, 0.5), (9,7,1), (6.5, 7.5, 0.5) ,(8, 5.5, 0.5)]
 bot_rad = 0.13
 bot_point = {}
 val2 = {}
@@ -25,9 +25,11 @@ def distance_between_points(x1,y1,x2,y2):
 	return sqrt((x1-x2)**2 + (y1-y2)**2)
 
 def myClearance(x, y):
-
-	for obstacles in circularObstacles:
-		val = sqrt((x-obstacles[0])**2 + (y-obstacles[1])**2) - obstacles[2] - 2*bot_rad
+	
+	for i in range(len(circularObstacles)):
+		obstacles = circularObstacles[i]
+		obstacle_radius_with_margin = obstacles[2]+safety_margin
+		val = sqrt((x-obstacles[0])**2 + (y-obstacles[1])**2) - obstacle_radius_with_margin - 2*bot_rad
 		if val > 0:
 			success = True
 		else:
@@ -107,7 +109,7 @@ def curvefit(pathList,length,order=3) :
 	pathList_new[:,0] = new_x
 	pathList_new[:,1] = new_y
 	pathList_new = np.array(pathList_new)
-	return pathList_new,new_x_dot,new_y_dot,k
+	return pathList,new_x_dot,new_y_dot,k
 
 def curvature(pathList,length,order = 3) :
 	x = pathList[:,0]

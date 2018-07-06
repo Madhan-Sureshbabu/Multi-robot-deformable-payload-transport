@@ -135,7 +135,7 @@ def plan(runTime, plannerType, objectiveType, fname, bound, start_pt, goal_pt):
     space = ob.RealVectorStateSpace(2)
 
     # Set the bounds of space to be in [0,1].
-    space.setBounds(bound[0], bound[1])
+    space.setBounds(bound[0] , bound[1])
 
     # Construct a space information instance for this state space
     si = ob.SpaceInformation(space)
