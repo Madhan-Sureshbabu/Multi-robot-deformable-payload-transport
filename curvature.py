@@ -25,6 +25,7 @@ import cubic_spline_planner
 from scipy.interpolate import spalde
 from scipy.interpolate import splev
 from scipy.interpolate import splrep
+from scipy.interpolate import spline
 import random
 import copy
 import sympy
@@ -47,7 +48,7 @@ class RRT():
     Class for RRT Planning
     """
 
-    def __init__(self, start, goal, obstacleList, randAreax,randAreay, expandDis=0.7, goalSampleRate=50, maxIter=500):
+    def __init__(self, start, goal, obstacleList, randAreax,randAreay, expandDis=1.0, goalSampleRate=50, maxIter=1000):
         """
         Setting Parameter
 
@@ -89,6 +90,7 @@ class RRT():
             # print(nind)
 
             # expand tree
+            # print "nind",nind
             nearestNode = self.nodeList[nind]
             theta = math.atan2(rnd[1] - nearestNode.y, rnd[0] - nearestNode.x)
 
@@ -149,10 +151,40 @@ class RRT():
         # ax.add_patch(plt.Circle(x,y,size,'-r'))
 
     def GetNearestListIndex(self, nodeList, rnd):
+    	global flag
+    	# print "nodeList"
+    	# print [(node.x,node.y) for node in nodeList]
         dlist = [(node.x - rnd[0]) ** 2 + (node.y - rnd[1])
                  ** 2 for node in nodeList]
-        minind = dlist.index(min(dlist))
-        return minind
+        dlist_sorted = copy.copy(dlist)
+        dlist_sorted.sort()
+    	c = np.array([rnd[0],rnd[1]])
+    	# print "dlist_sorted",dlist_sorted
+    	j=[dlist.index(dlist_sorted[i]) for i in range(len(dlist_sorted))]
+        for i in j :
+        	# print nodeList[i].x,nodeList[i].y
+        	parent_index = nodeList[i].parent
+        	# print parent_index
+        	# if flag==0 :
+        	# 	flag = 1
+        	# 	return i
+        	if parent_index==None :
+				return i
+        	else : 
+	        	b = np.array([nodeList[i].x,nodeList[i].y])
+	        	a = np.array([nodeList[parent_index].x,nodeList[parent_index].y])
+	        	p=a-b
+	        	q=c-b
+	        	# print "p",p
+	        	# print "q",q
+	        	# print "unit product: ",np.dot(q,p)/(LA.norm(q)*LA.norm(p))
+	        	supplementary_angle = math.pi - (math.acos(float(format(np.dot(q,p)/(LA.norm(q)*LA.norm(p)),'.2f'))))
+	        	if supplementary_angle <= gamma :
+	        		return i
+	        	else : 
+	        		continue
+        # minind = dlist.index(min(dlist))
+        # return minind
 
     def __CollisionCheck(self, node, obstacleList,nodeList):
     	x, y = sympy.symbols("x y", real=True)
@@ -161,7 +193,7 @@ class RRT():
             dy = oy - node.y
             d = math.sqrt(dx * dx + dy * dy)
             eq1 = sympy.Eq((x-ox)**2+(y-oy)**2,size**2)
-            eq2 = sympy.Eq((x-node.x)**2+(y-node.y)**2,(2*mf.bot_rad)**2)
+            eq2 = sympy.Eq((x-node.x)**2+(y-node.y)**2,(2*mf.bot_rad+0.05)**2)
             sol = sympy.solve([eq1,eq2])
             if d <= size or sol!=[]:#or d1<=0.5+0.1: #0.1 - safety margin
             	# print "collision"
@@ -253,9 +285,9 @@ def PathSmoothing(path, maxIter, obstacleList):
         pickPoints.sort()
         #  print(pickPoints)
         first = GetTargetPoint(path, pickPoints[0])
-        print(first)
+        # print(first)
         second = GetTargetPoint(path, pickPoints[1])
-        print(second)
+        # print(second)
 
         if first[2] <= 0 or second[2] <= 0:
             continue
@@ -283,7 +315,7 @@ def PathSmoothing(path, maxIter, obstacleList):
 
 
 def main():
-    rrt = RRT(start=[0, 0], goal=[10, 10],
+    rrt = RRT(start=[0, 0], goal=[2, 10],
               randAreax=[-2, 15],randAreay=[-2,15], obstacleList=circularObstacles)
     path = rrt.Planning(animation=show_animation)
     path.reverse()
@@ -388,7 +420,7 @@ def bounds_calc(hom_matrix,j):
 						sol = sympy.solve([eq1,eq2])
 						if sol==[] :
 							break
-						y_var = y_var - 0.005
+						y_var = y_var - 0.03
 					upper_bound[0][j] = y_var
 					if upper_bound[0][j] <= lower_bound[0] :
 						path_feasible = False
@@ -404,15 +436,15 @@ def bounds_calc(hom_matrix,j):
 						sol = sympy.solve([eq1,eq2])
 						if sol==[] :
 							break
-						y_var = y_var + 0.005
+						y_var = y_var + 0.03
 					upper_bound[1][j] = y_var
 					if upper_bound[1][j] >= -lower_bound[1] :
 						upper_bound[1][j] = -lower_bound[1]-0.00001
 						path_feasible = False
 					else :
 						path_feasible = True
-	print "upper_bound[0]",upper_bound[0][j]
-	print "upper_bound[1]",upper_bound[1][j]
+	# print "upper_bound[0]",upper_bound[0][j]
+	# print "upper_bound[1]",upper_bound[1][j]
 
 
 
@@ -437,7 +469,8 @@ circle = []
 lower_bound = {}
 upper_bound = {}
 y_intersection = {}
-
+gamma = math.pi/4
+flag = 0
 
 for i in range(NUM_ROBOTS):
 	mass[i] = 1
@@ -455,7 +488,7 @@ safety_margin = 0.3 # gap between robots to avoid collision
 pathList = main()
 
 pathList = np.array(pathList) 
-print "len(pathList)",len(pathList)
+# print "len(pathList)",len(pathList)
 long_path,vel_x,vel_y,k0 = mf.curvefit(pathList,pathList.shape[0])
 
 vel_0 = sqrt((vel_x)**2+(vel_y)**2)
@@ -463,8 +496,7 @@ w_0 = vel_0 * k0
 for i in range(NUM_ROBOTS):
 	for j in range(len(long_path)) :
 		upper_bound[i][j] = 0.5
-		lower_bound[i] = mf.bot_rad - 0.001
-
+		lower_bound[i] = mf.bot_rad + 0.01
 
 guess = np.array([0.31001,.31001,0,-1*math.pi/2])
 guess2 = np.array([0.001,0])
@@ -480,11 +512,11 @@ for j in range(1+len(long_path)) :
 		solution =  minimize(velocity_of_VS_vertices, guess,method='SLSQP', bounds = ((lower_bound[0],upper_bound[0][j]),(lower_bound[0],abs(upper_bound[1][j])),(0,math.pi),(0,math.pi)))
 		# solution = least_squares(velocity_of_VS_vertices,guess,'3-point',bounds=([0.3,0.3,0,-math.pi], [ upper_bound[0][j],abs(upper_bound[1][j]) ,math.pi,0 ]))
 		# solution = least_squares(velocity_of_VS_vertices2,guess2,'3-point',bounds=([2*mf.bot_rad, 0 ], [ upper_bound[1][j],math.pi ]))
-		print "solution.x[0] ",solution.x[0]
-		print "solution.x[1] ",solution.x[1]
-		print "radius of curvature ",1/k0[j]
-		print "position = ",long_path[j][0],long_path[j][1]
-		print (1/k0[j])>solution.x[0]
+		# print "solution.x[0] ",solution.x[0]
+		# print "solution.x[1] ",solution.x[1]
+		# print "radius of curvature ",1/k0[j]
+		# print "position = ",long_path[j][0],long_path[j][1]
+		# print (1/k0[j])>solution.x[0]
 		solution.x[3] = -1*solution.x[3]
 		ICR_centre = np.matmul(A,np.array([0,1/k0[j],1]))
 
@@ -519,12 +551,13 @@ Bot_path[1] = np.delete(Bot_path[1],0,0)
 bot1x,bot1y = Bot_path[0].T
 bot2x,bot2y = Bot_path[1].T
 xc,yc = long_path.T
+long_x,long_y = long_path.T
 
 xnew = np.linspace(0, 1, len(bot1x))
 xnew2 = np.linspace(0,1,len(bot2x))
 
-print len(xnew)
-print len(xnew2)
+# print len(xnew)
+# print len(xnew2)
 bot1x = np.asarray(bot1x).squeeze()
 bot1y = np.asarray(bot1y).squeeze()
 bot2x = np.asarray(bot2x).squeeze()
@@ -532,29 +565,41 @@ bot2y = np.asarray(bot2y).squeeze()
 
 # bot1x,bot1y,a,b,c = cubic_spline_planner.calc_spline_course(bot1x,bot1y,0.3)
 # bot2x,bot2y,a,b,c = cubic_spline_planner.calc_spline_course(bot2x,bot2y,0.3)
-
-'''
+# long_x,long_y,a,b,c = cubic_spline_planner.calc_spline_course(long_x,long_y,0.3)
+# print "bot1x",bot1x
+# print "bot1y",bot1y
+# print "len(bot1x)",len(bot1x)
+# print "len(bot2x)",len(bot2x)
+# print "len(long_x)",len(long_x)
+print "len(xnew)",len(xnew)
+if len(xnew)%2==0 :
+	length=len(xnew)-1
+else :
+	length = len(xnew)-2
 fx1 = interp1d(xnew, bot1x,kind=9)#, k=4, s=0)#interp1d(xnew,bot1x)
-fx2 = interp1d(xnew2, bot2x,kind=9)#, k=4, s=0)
+fx2 = interp1d(xnew, bot2x,kind=9)#, k=4, s=0)
 fy1 = interp1d(xnew, bot1y,kind=9)#, k=4, s=0)
-fy2 = interp1d(xnew2, bot2y,kind=9)#, k=4, s=0)
+fy2 = interp1d(xnew, bot2y,kind=9)#, k=4, s=0)
+flx1 = interp1d(xnew,long_x,kind=9)
+fly1 = interp1d(xnew,long_y,kind=9)
 
-
-xnew1 = np.linspace(0,1,len(bot1x))
+xnew1 = np.linspace(0,1,2*len(bot1x))
 
 
 bot1y = fy1(xnew1)
 bot2y = fy2(xnew1)
 bot1x = fx1(xnew1)
 bot2x = fx2(xnew1)
-'''
+long_x = flx1(xnew1)
+long_y = fly1(xnew1)
 
-
-for i in range(len(Bot_path[0])):
+for i in range(len(bot1x)):
 	# print bot1y[i]
-	ax.add_patch(plt.Circle((long_path[i][0],long_path[i][1]),2*mf.bot_rad,color='b'))
+	ax.add_patch(plt.Circle((long_x[i],long_y[i]),2*mf.bot_rad,color='b'))
 	ax.add_patch(plt.Circle((bot1x[i],bot1y[i]),mf.bot_rad,color='g'))
 	ax.add_patch(plt.Circle((bot2x[i],bot2y[i]),mf.bot_rad,color='r'))
+
+# plt.plot(bot1x,bot1y,'-g',bot2x,bot2y,'-r')
 ax.plot()
 # print bot2x,bot2y
 plt.show()
