@@ -19,6 +19,7 @@ from scipy.optimize import least_squares
 from scipy.optimize import minimize
 from numpy import linalg as LA
 from numpy.linalg import inv
+from scipy import interpolate
 from scipy.interpolate import interp1d
 from scipy.interpolate import UnivariateSpline
 import cubic_spline_planner
@@ -192,8 +193,8 @@ class RRT():
             dx = ox - node.x
             dy = oy - node.y
             d = math.sqrt(dx * dx + dy * dy)
-            eq1 = sympy.Eq((x-ox)**2+(y-oy)**2,size**2)
-            eq2 = sympy.Eq((x-node.x)**2+(y-node.y)**2,(2*mf.bot_rad+0.05)**2)
+            eq1 = sympy.Eq((x-ox)**2+(y-oy)**2,(size)**2)
+            eq2 = sympy.Eq((x-node.x)**2+(y-node.y)**2,(2*mf.bot_rad+0.1)**2)
             sol = sympy.solve([eq1,eq2])
             if d <= size or sol!=[]:#or d1<=0.5+0.1: #0.1 - safety margin
             	# print "collision"
@@ -315,7 +316,7 @@ def PathSmoothing(path, maxIter, obstacleList):
 
 
 def main():
-    rrt = RRT(start=[0, 0], goal=[2, 10],
+    rrt = RRT(start=[0, 0], goal=[10, 10],
               randAreax=[-2, 15],randAreay=[-2,15], obstacleList=circularObstacles)
     path = rrt.Planning(animation=show_animation)
     path.reverse()
@@ -420,7 +421,7 @@ def bounds_calc(hom_matrix,j):
 						sol = sympy.solve([eq1,eq2])
 						if sol==[] :
 							break
-						y_var = y_var - 0.03
+						y_var = y_var - 0.01
 					upper_bound[0][j] = y_var
 					if upper_bound[0][j] <= lower_bound[0] :
 						path_feasible = False
@@ -436,7 +437,7 @@ def bounds_calc(hom_matrix,j):
 						sol = sympy.solve([eq1,eq2])
 						if sol==[] :
 							break
-						y_var = y_var + 0.03
+						y_var = y_var + 0.01
 					upper_bound[1][j] = y_var
 					if upper_bound[1][j] >= -lower_bound[1] :
 						upper_bound[1][j] = -lower_bound[1]-0.00001
@@ -469,7 +470,7 @@ circle = []
 lower_bound = {}
 upper_bound = {}
 y_intersection = {}
-gamma = math.pi/4
+gamma = math.pi/6
 flag = 0
 
 for i in range(NUM_ROBOTS):
@@ -481,7 +482,7 @@ for i in range(NUM_ROBOTS):
 	upper_bound[i] = {}
 	print Bot_path[i]
 
-circularObstacles = [(5, 2.5, 2),(2,6,2.005),(9,4,1)]
+circularObstacles = [(5, 2.5, 2),(1,6,2.005),(10,4,1)]
 
 path_feasible = False 
 safety_margin = 0.3 # gap between robots to avoid collision
@@ -537,13 +538,15 @@ for j in range(1+len(long_path)) :
 				Bot_path[i] = np.append(Bot_path[i],np.array([[bot_paths[i][j][0],bot_paths[i][j][1]]]),axis=0)
 
 
-fig, ax= plt.subplots()
+fig, ax1= plt.subplots()
+fig1,ax2 = plt.subplots()
 
 ax.axis('equal')
 
 
 for obstacles in circularObstacles:
-			ax.add_patch(plt.Circle((obstacles[0], obstacles[1]), obstacles[2], color='b'))
+			ax1.add_patch(plt.Circle((obstacles[0], obstacles[1]), obstacles[2], color='b'))
+			ax2.add_patch(plt.Circle((obstacles[0], obstacles[1]), obstacles[2], color='b'))
 Bot_path[0] = np.delete(Bot_path[0],0,0)
 Bot_path[1] = np.delete(Bot_path[1],0,0)
 
@@ -553,8 +556,8 @@ bot2x,bot2y = Bot_path[1].T
 xc,yc = long_path.T
 long_x,long_y = long_path.T
 
-xnew = np.linspace(0, 1, len(bot1x))
-xnew2 = np.linspace(0,1,len(bot2x))
+xnew = np.linspace(1,6,len(bot1x))
+xnew2 = np.linspace(1,6,len(bot2x))
 
 # print len(xnew)
 # print len(xnew2)
@@ -562,6 +565,63 @@ bot1x = np.asarray(bot1x).squeeze()
 bot1y = np.asarray(bot1y).squeeze()
 bot2x = np.asarray(bot2x).squeeze()
 bot2y = np.asarray(bot2y).squeeze()
+
+print "len(bot1x)",len(bot1x)
+print "len(bot2x)",len(bot2x)
+
+tck1x = interpolate.splrep(xnew,bot1x,s=0,k=5)
+tck1y = interpolate.splrep(xnew,bot1y,s=0,k=5)
+tck2x = interpolate.splrep(xnew,bot2x,s=0,k=5)
+tck2y = interpolate.splrep(xnew,bot2y,s=0,k=5)
+
+xnew1 = np.linspace(1,6,2*len(bot1x))
+
+bot1x = interpolate.splev(xnew1,tck1x,der=0)
+bot1y = interpolate.splev(xnew1,tck1y,der=0)
+bot2x = interpolate.splev(xnew1,tck2x,der=0)
+bot2y = interpolate.splev(xnew1,tck2y,der=0)
+
+bot1x_dot = interpolate.splev(xnew1,tck1x,der=1)
+bot1y_dot = interpolate.splev(xnew1,tck1y,der=1)
+bot2x_dot = interpolate.splev(xnew1,tck2x,der=1)
+bot2y_dot = interpolate.splev(xnew1,tck2y,der=1)
+
+bot1_dot = sqrt((bot1x_dot)**2+(bot1y_dot)**2)
+bot2_dot = sqrt((bot2x_dot)**2+(bot2y_dot)**2)
+
+phi1 = [math.atan2((bot1y_dot[i]/bot1_dot[i]),(bot1x_dot[i]/bot1_dot[i])) for i in range(len(bot1x_dot))]
+phi1 = np.array(phi1)
+phi2 = [math.atan2((bot2y_dot[i]/bot2_dot[i]),(bot2x_dot[i]/bot2_dot[i])) for i in range(len(bot2x_dot))]
+phi2 = np.array(phi2)
+
+tcko1 = interpolate.splrep(xnew1,phi1,s=0,k=5)
+tcko2 = interpolate.splrep(xnew1,phi2,s=0,k=5)
+
+omega1 = interpolate.splev(xnew1,tcko1,der=1)
+omega2 = interpolate.splev(xnew1,tcko2,der=1)
+omega1 = np.delete(omega1,len(omega1)-1)
+omega2 = np.delete(omega2,len(omega2)-1)
+
+
+# omega11.append(0)
+# omega12.append(0)
+
+# omega1 = [(omega11[i]-omega11[i-1]) for i in range(len(omega11))]
+# omega2 = [(omega12[i]-omega12[i-1]) for i in range(len(omega12))]
+
+print "bot1_dot"
+print bot1_dot
+print "bot2_dot"
+print bot2_dot
+print "omega1"
+print omega1
+print "omega2"
+print omega2
+print "len(bot1x)",len(bot1x)
+print "len(bot2x)",len(bot2x)
+print "len(omega1)",len(omega1)
+print "len(omega2)",len(omega2)
+
 
 # bot1x,bot1y,a,b,c = cubic_spline_planner.calc_spline_course(bot1x,bot1y,0.3)
 # bot2x,bot2y,a,b,c = cubic_spline_planner.calc_spline_course(bot2x,bot2y,0.3)
@@ -571,6 +631,8 @@ bot2y = np.asarray(bot2y).squeeze()
 # print "len(bot1x)",len(bot1x)
 # print "len(bot2x)",len(bot2x)
 # print "len(long_x)",len(long_x)
+
+'''
 print "len(xnew)",len(xnew)
 if len(xnew)%2==0 :
 	length=len(xnew)-1
@@ -583,7 +645,6 @@ fy2 = interp1d(xnew, bot2y,kind=9)#, k=4, s=0)
 flx1 = interp1d(xnew,long_x,kind=9)
 fly1 = interp1d(xnew,long_y,kind=9)
 
-xnew1 = np.linspace(0,1,2*len(bot1x))
 
 
 bot1y = fy1(xnew1)
@@ -593,14 +654,23 @@ bot2x = fx2(xnew1)
 long_x = flx1(xnew1)
 long_y = fly1(xnew1)
 
+print "len(bot1x)",len(bot1x)
+print "len(bot2x)",len(bot2x)
+
+
+'''
+ax2.plot(bot1x,bot1y,'-g',bot2x,bot2y,'-b')
 for i in range(len(bot1x)):
 	# print bot1y[i]
-	ax.add_patch(plt.Circle((long_x[i],long_y[i]),2*mf.bot_rad,color='b'))
-	ax.add_patch(plt.Circle((bot1x[i],bot1y[i]),mf.bot_rad,color='g'))
-	ax.add_patch(plt.Circle((bot2x[i],bot2y[i]),mf.bot_rad,color='r'))
+	# ax1.add_patch(plt.Circle((long_x[i],long_y[i]),2*mf.bot_rad,color='b'))
+	ax1.add_patch(plt.Circle((bot1x[i],bot1y[i]),mf.bot_rad,color='g'))
+	ax1.add_patch(plt.Circle((bot2x[i],bot2y[i]),mf.bot_rad,color='r'))
 
 # plt.plot(bot1x,bot1y,'-g',bot2x,bot2y,'-r')
-ax.plot()
+ax1.plot()
+# plt.figure()
 # print bot2x,bot2y
+
+
 plt.show()
 exit()
