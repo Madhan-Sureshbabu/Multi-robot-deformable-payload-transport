@@ -361,9 +361,10 @@ import matplotlib.pyplot as plt
 import cubic_spline_planner
 
 
-k = 1#    0.5  # control gain
+k = 0.5 #1 #    0.5  # control gain
 Kp = 1.0  # speed propotional gain
 L = 0.6  # [m] Wheel base of vehicle
+Kdis = 0.33
 max_steer = math.radians(30.0)  # [rad] max steering angle
 
 show_animation = True
@@ -390,19 +391,22 @@ def update(state, a, delta):
     state.yaw = state.yaw + state.v / L * math.tan(delta) * dt
     state.yaw = pi_2_pi(state.yaw)
     state.v = state.v + a * dt
+    # state.v = a * dt
 
     return state
 
 
-def PIDControl(target, current,index):
-    a = Kp * (target - current) + Ki * ()
+def PIDControl(target, current,index,state,gen_x,gen_y):
+    a = Kp * (target - current) 
+    dis = sqrt((state.x - gen_x[index])**2 + (state.y - gen_y[index])**2)
+    a = a + Kdis * dis
 
     return a
 
 
 def stanley_control(state, cx, cy, cyaw, pind):
 
-    ind, efa = calc_target_index(state, cx, cy)
+    ind, efa = calc_target_index(state, cx, cy,pind)
 
     if pind >= ind:
         ind = pind
@@ -424,7 +428,7 @@ def pi_2_pi(angle):
     return angle
 
 
-def calc_target_index(state, cx, cy):
+def calc_target_index(state, cx, cy,present_target_ind):
 
     # calc frant axle position
     fx = state.x + L * math.cos(state.yaw)
@@ -435,7 +439,13 @@ def calc_target_index(state, cx, cy):
     dy = [fy - icy for icy in cy]
     d = [math.sqrt(idx ** 2 + idy ** 2) for (idx, idy) in zip(dx, dy)]
     mind = min(d)
+    # mind = sqrt((fx - cx[present_target_ind])**2 + (fy - cy[present_target_ind])**2)
     ind = d.index(mind)
+    # if state.x >= cx[present_target_ind] and state.y >= cy[present_target_ind] :
+    # if 
+    #     ind = present_target_ind + 1
+    # else :
+    #     ind = present_target_ind
 
     tyaw = pi_2_pi(math.atan2(fy - cy[ind], fx - cx[ind]) - state.yaw)
     if tyaw > 0.0:
@@ -603,7 +613,7 @@ flag = 0
 max_vel = 4
 max_vel_actual = 0.3
 bot_rad = 0.13
-target_speed = 0.3
+target_speed = 0.08
 
 for i in range(NUM_ROBOTS):
     mass[i] = 1
@@ -614,7 +624,7 @@ for i in range(NUM_ROBOTS):
     upper_bound[i] = {}
     print Bot_path[i]
 
-circularObstacles = [(5, 2.5, 2),(1,6,2.005),(10,4,1)]
+circularObstacles = [(4, 2.5, 2),(1,6,2.005),(9,4,2)]
 
 path_feasible = False 
 safety_margin = 0.3 # gap between robots to avoid collision
@@ -743,20 +753,23 @@ v1=[0.0]
 v2=[0.0]
 o1 = [0.0]
 o2 = [0.0]
-target_ind1, mind = calc_target_index(state, bot1x, bot1y)
-target_ind2, mind = calc_target_index(state2, bot2x, bot2y)
+target_ind1, mind = calc_target_index(state, bot1x, bot1y,0)
+target_ind2, mind = calc_target_index(state2, bot2x, bot2y,0)
 
 rrt = RRT(start=[0, 0], goal=[10, 10],
               randAreax=[-2, 15],randAreay=[-2,15], obstacleList=circularObstacles)
     
-
-while lastelement > target_ind1 or lastelement > target_ind2 : 
+error = 0.3
+# while (lastelement  > target_ind1  or lastelement > target_ind2 ) and not (target_ind1==lastelement and target_ind2==lastelement) or :
+while ((abs(bot1x[lastelement] - b1x[len(b1x)-1])>error) or (abs(bot1y[lastelement]-b1y[len(b1y)-1])>error) or (abs(bot2x[lastelement] - b2x[len(b2x)-1])>error) or (abs(bot2y[lastelement]-b2y[len(b2y)-1])>error)) :
     di, target_ind1 = stanley_control(state, bot1x, bot1y, yaw1, target_ind1)
-    ai = PIDControl(target_speed, state.v,bot1x,target_ind1)
+    di2, target_ind2 = stanley_control(state2, bot2x, bot2y, yaw2, target_ind2)
+    target_ind1 = min(target_ind1,target_ind2)
+    target_ind2 = target_ind1
+    ai = PIDControl(target_speed, state.v,target_ind1,state,bot1x,bot1y)
     state = update(state, ai, di)
 
-    di2, target_ind2 = stanley_control(state2, bot2x, bot2y, yaw2, target_ind2)
-    ai2 = PIDControl(target_speed, state2.v,target_ind2)
+    ai2 = PIDControl(target_speed, state2.v,target_ind2,state2,bot2x,bot2y)
     state2 = update(state2, ai2, di2)
 
     b2x.append(state2.x)
@@ -801,6 +814,20 @@ while lastelement > target_ind1 or lastelement > target_ind2 :
 
 print "len(v1)",len(v1)
 print "len(o1)",len(o1)
+print "v1"
+print v1
+max_vel1 = 0
+max_vel2 = 0
+for i in range(len(v1)) :
+    if v1[i] > max_vel1 : 
+        max_vel1 = v1[i]
+    if v2[i] > max_vel2 :
+        max_vel2 = v2[i]
+    if v1[i]>0.3 :
+        print v1[i]
+
+print "max_vel1 :",max_vel1
+print "max_vel2 :",max_vel2
 
 # if show_animation:
 #     plt.cla()
