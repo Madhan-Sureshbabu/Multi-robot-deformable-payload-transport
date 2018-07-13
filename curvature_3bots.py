@@ -153,43 +153,43 @@ class RRT():
         # ax.add_patch(plt.Circle(x,y,size,'-r'))
 
     def GetNearestListIndex(self, nodeList, rnd):
-    	global flag
-    	# print "nodeList"
-    	# print [(node.x,node.y) for node in nodeList]
+        global flag
+        # print "nodeList"
+        # print [(node.x,node.y) for node in nodeList]
         dlist = [(node.x - rnd[0]) ** 2 + (node.y - rnd[1])
                  ** 2 for node in nodeList]
         dlist_sorted = copy.copy(dlist)
         dlist_sorted.sort()
-    	c = np.array([rnd[0],rnd[1]])
-    	# print "dlist_sorted",dlist_sorted
-    	j=[dlist.index(dlist_sorted[i]) for i in range(len(dlist_sorted))]
+        c = np.array([rnd[0],rnd[1]])
+        # print "dlist_sorted",dlist_sorted
+        j=[dlist.index(dlist_sorted[i]) for i in range(len(dlist_sorted))]
         for i in j :
-        	# print nodeList[i].x,nodeList[i].y
-        	parent_index = nodeList[i].parent
-        	# print parent_index
-        	# if flag==0 :
-        	# 	flag = 1
-        	# 	return i
-        	if parent_index==None :
-				return i
-        	else : 
-	        	b = np.array([nodeList[i].x,nodeList[i].y])
-	        	a = np.array([nodeList[parent_index].x,nodeList[parent_index].y])
-	        	p=a-b
-	        	q=c-b
-	        	# print "p",p
-	        	# print "q",q
-	        	# print "unit product: ",np.dot(q,p)/(LA.norm(q)*LA.norm(p))
-	        	supplementary_angle = math.pi - (math.acos(float(format(np.dot(q,p)/(LA.norm(q)*LA.norm(p)),'.2f'))))
-	        	if supplementary_angle <= gamma :
-	        		return i
-	        	else : 
-	        		continue
+            # print nodeList[i].x,nodeList[i].y
+            parent_index = nodeList[i].parent
+            # print parent_index
+            # if flag==0 :
+            #   flag = 1
+            #   return i
+            if parent_index==None :
+                return i
+            else : 
+                b = np.array([nodeList[i].x,nodeList[i].y])
+                a = np.array([nodeList[parent_index].x,nodeList[parent_index].y])
+                p=a-b
+                q=c-b
+                # print "p",p
+                # print "q",q
+                # print "unit product: ",np.dot(q,p)/(LA.norm(q)*LA.norm(p))
+                supplementary_angle = math.pi - (math.acos(float(format(np.dot(q,p)/(LA.norm(q)*LA.norm(p)),'.2f'))))
+                if supplementary_angle <= gamma :
+                    return i
+                else : 
+                    continue
         # minind = dlist.index(min(dlist))
         # return minind
 
     def __CollisionCheck(self, node, obstacleList,nodeList):
-    	x, y = sympy.symbols("x y", real=True)
+        x, y = sympy.symbols("x y", real=True)
         for (ox, oy, size) in obstacleList:
             dx = ox - node.x
             dy = oy - node.y
@@ -198,7 +198,7 @@ class RRT():
             eq2 = sympy.Eq((x-node.x)**2+(y-node.y)**2,(2*bot_rad+0.1)**2)
             sol = sympy.solve([eq1,eq2])
             if d <= size or sol!=[]:#or d1<=0.5+0.1: #0.1 - safety margin
-            	# print "collision"
+                # print "collision"
                 return False  # collision
 
         return True  # safe
@@ -246,7 +246,7 @@ def GetTargetPoint(path, targetL):
 
     x = path[ti][0] + (path[ti + 1][0] - path[ti][0]) * partRatio
     y = path[ti][1] + (path[ti + 1][1] - path[ti][1]) * partRatio
-	# print((x,y))
+    # print((x,y))
 
     return [x, y, ti]
 
@@ -317,7 +317,7 @@ def PathSmoothing(path, maxIter, obstacleList):
 
 
 def main():
-    rrt = RRT(start=[0, 0], goal=[10, 10],
+    rrt = RRT(start=Start, goal=Goal,
               randAreax=[-2, 15],randAreay=[-2,15], obstacleList=circularObstacles)
     path = rrt.Planning(animation=show_animation)
     path.reverse()
@@ -327,7 +327,7 @@ def main():
     # y_sin = (30 * np.sin(2*math.pi*n/N))
     # path = []
     # for i in range(len(n)):
-    # 	path.append([n[i],y_sin[i]])
+    #   path.append([n[i],y_sin[i]])
 
     # Path smoothing
     maxIter = 1000
@@ -492,7 +492,7 @@ def velocity_of_VS_vertices(var):
     for i in range(NUM_ROBOTS):
         A1 = np.array([[0,-k0[j],1],[k0[j],0,0],[0,0,0]])
         pos[i] = np.array([var[i]*math.cos(var[i+NUM_ROBOTS]),var[i]*math.sin(var[i+NUM_ROBOTS]),1])
-        vel[i] = np.matmul(A1,pos[i])
+        vel[i] = speed[j]*np.matmul(A1,pos[i])
         den = var[i]**2 + (1/((k0[j])**2)) - (2*var[i]*math.sin(var[i+NUM_ROBOTS]))/k0[j]
         # print den<0
         w[i] = (LA.norm(vel[i]))/sqrt(den)
@@ -546,7 +546,15 @@ def bounds_calc(hom_matrix,j):
         obstacle = circularObstacles[r]
         a = np.matmul(hom_matrix_inv,np.array([obstacle[0],obstacle[1],1]))
         obs_centre_x = a[0]
-        obs_centre_y = a[1] 
+        obs_centre_y = a[1]
+        sol1 = [0]
+        # print "sol1 cond",sol1==[]
+        while sol1!=[]: 
+            eq1 = sympy.Eq((x-obs_centre_x)**2+(y-obs_centre_y)**2,obstacle[2]**2)
+            eq2 = sympy.Eq((x- upper_bound[0][j]*math.cos(math.pi/6))**2+(y- upper_bound[0][j]*math.sin(math.pi/6))**2,bot_rad**2)
+            sol1 = sympy.solve([eq1,eq2])
+            if sol1!=[]:
+                upper_bound[0][j]=upper_bound[0][j]-0.03
         if obstacle[2]**2 - obs_centre_x**2 >= 0 :
             y_intersection1 = obs_centre_y - abs(sqrt(obstacle[2]**2 - obs_centre_x**2))
             y_intersection2 = obs_centre_y + abs(sqrt(obstacle[2]**2 - obs_centre_x**2))
@@ -560,10 +568,10 @@ def bounds_calc(hom_matrix,j):
                         if sol==[] :
                             break
                         y_var = y_var - 0.01
-                    upper_bound[0][j] = y_var
-                    if upper_bound[0][j] <= lower_bound[0] :
+                    upper_bound[2][j] = y_var
+                    if upper_bound[2][j] <= lower_bound[2] :
                         path_feasible = False
-                        upper_bound[0][j] = lower_bound[0] + 0.00001 #since upperbound > lower bound
+                        upper_bound[2][j] = lower_bound[2] + 0.00001 #since upperbound > lower bound
                     else :
                         path_feasible = True
             elif obs_centre_y < 0 :
@@ -582,8 +590,10 @@ def bounds_calc(hom_matrix,j):
                         path_feasible = False
                     else :
                         path_feasible = True
-    # print "upper_bound[0]",upper_bound[0][j]
-    # print "upper_bound[1]",upper_bound[1][j]
+    print "upper_bound[0]",upper_bound[0][j]
+    print "upper_bound[1]",upper_bound[1][j]
+    print "upper_bound[2]",upper_bound[2][j]
+    print "---"
 
 
 
@@ -593,7 +603,7 @@ def bounds_calc(hom_matrix,j):
     # print upper_bound[1][j]
 
 
-NUM_ROBOTS = 2
+NUM_ROBOTS = 3
 
 vel = {} #in M0 frame
 vel_global = {} #in global frame
@@ -614,6 +624,8 @@ max_vel = 4
 max_vel_actual = 0.3
 bot_rad = 0.13
 target_speed = 0.08
+Start = [0,0]
+Goal = [10,10]
 
 for i in range(NUM_ROBOTS):
     mass[i] = 1
@@ -624,7 +636,7 @@ for i in range(NUM_ROBOTS):
     upper_bound[i] = {}
     print Bot_path[i]
 
-circularObstacles = [(4, 2.5, 2),(1,6,2.005),(9,4,2)]
+circularObstacles = [(5, 2.5, 2),(1,6,2.005),(9,4,2)]
 
 path_feasible = False 
 safety_margin = 0.3 # gap between robots to avoid collision
@@ -634,6 +646,8 @@ pathList = np.array(pathList)
 # print "len(pathList)",len(pathList)
 long_path,vel_x,vel_y,k0 = curvefit(pathList,pathList.shape[0])
 
+speed = [sqrt(vel_x[i]**2+vel_y[i]**2) for i in range(len(vel_y))]
+
 
 vel_0 = sqrt((vel_x)**2+(vel_y)**2)
 w_0 = vel_0 * k0
@@ -642,7 +656,7 @@ for i in range(NUM_ROBOTS):
         upper_bound[i][j] = 0.5
         lower_bound[i] = bot_rad + 0.01
 
-guess = np.array([0.31001,.31001,0,-1*math.pi/2])
+guess = np.array([0.31001,.31001,.31001,0,math.pi/2,math.pi/2])
 guess2 = np.array([0.001,0])
 axis_guess = np.array([0,0,0])
 
@@ -653,7 +667,10 @@ for j in range(1+len(long_path)) :
         axis_theta = math.atan2(vel_y[j],vel_x[j])
         A = [[math.cos(axis_theta),-1*math.sin(axis_theta),axis_solution.x[0]],[math.sin(axis_theta),math.cos(axis_theta),axis_solution.x[1]],[0,0,1]]
         path_feasible = bounds_calc(A,j)
-        solution =  minimize(velocity_of_VS_vertices, guess,method='SLSQP', bounds = ((lower_bound[0],upper_bound[0][j]),(lower_bound[0],abs(upper_bound[1][j])),(0,math.pi),(0,math.pi)))
+        # print "UP1",upper_bound[0][j]
+        # print "UP2",upper_bound[1][j]
+        # print "UP3",upper_bound[2][j]
+        solution =  minimize(velocity_of_VS_vertices, guess,method='SLSQP', bounds = ((lower_bound[0],upper_bound[0][j]),(lower_bound[0],abs(upper_bound[1][j])),(lower_bound[2],abs(upper_bound[2][j])),(0,math.pi/6),(0,math.pi),(math.pi/6,math.pi)))
         # solution = least_squares(velocity_of_VS_vertices,guess,'3-point',bounds=([0.3,0.3,0,-math.pi], [ upper_bound[0][j],abs(upper_bound[1][j]) ,math.pi,0 ]))
         # solution = least_squares(velocity_of_VS_vertices2,guess2,'3-point',bounds=([2*bot_rad, 0 ], [ upper_bound[1][j],math.pi ]))
         # print "solution.x[0] ",solution.x[0]
@@ -661,7 +678,10 @@ for j in range(1+len(long_path)) :
         # print "radius of curvature ",1/k0[j]
         # print "position = ",long_path[j][0],long_path[j][1]
         # print (1/k0[j])>solution.x[0]
-        solution.x[3] = -1*solution.x[3]
+        # if solution.x[2] < solution.x[0] * math.sin(solution.x[0+NUM_ROBOTS]) :
+
+        solution.x[1+NUM_ROBOTS] = -1*solution.x[1+NUM_ROBOTS] # FOR SECOND ROBOT, ACTUAL BETA = -1 * OPTIMIZED BETA
+        # print solution.x
         ICR_centre = np.matmul(A,np.array([0,1/k0[j],1]))
 
         circle.append(plt.Circle((ICR_centre[0],ICR_centre[1]),1/k0[j],color='b',fill=False))#np.append(circle,plt.Circle((ICR_centre[0],ICR_centre[1]),1/k0[j],color='b',fill=False),axis=0)
@@ -691,10 +711,11 @@ ax.axis('equal')
             # ax2.add_patch(plt.Circle((obstacles[0], obstacles[1]), obstacles[2], color='b'))
 Bot_path[0] = np.delete(Bot_path[0],0,0)
 Bot_path[1] = np.delete(Bot_path[1],0,0)
-
-
+Bot_path[2] = np.delete(Bot_path[2],0,0)
+ 
 bot1x,bot1y = Bot_path[0].T
 bot2x,bot2y = Bot_path[1].T
+bot3x,bot3y = Bot_path[2].T
 xc,yc = long_path.T
 long_x,long_y = long_path.T
 
@@ -707,14 +728,19 @@ bot1x = np.asarray(bot1x).squeeze()
 bot1y = np.asarray(bot1y).squeeze()
 bot2x = np.asarray(bot2x).squeeze()
 bot2y = np.asarray(bot2y).squeeze()
+bot3x = np.asarray(bot3x).squeeze()
+bot3y = np.asarray(bot3y).squeeze()
 
 print "len(bot1x)",len(bot1x)
 print "len(bot2x)",len(bot2x)
+print "len(bot3x)",len(bot3x)
 
 tck1x = interpolate.splrep(xnew,bot1x,s=0,k=5)
 tck1y = interpolate.splrep(xnew,bot1y,s=0,k=5)
 tck2x = interpolate.splrep(xnew,bot2x,s=0,k=5)
 tck2y = interpolate.splrep(xnew,bot2y,s=0,k=5)
+tck3x = interpolate.splrep(xnew,bot3x,s=0,k=5)
+tck3y = interpolate.splrep(xnew,bot3y,s=0,k=5)
 
 xnew1 = np.linspace(1,6,2*len(bot1x))
 
@@ -722,17 +748,23 @@ bot1x = interpolate.splev(xnew1,tck1x,der=0)
 bot1y = interpolate.splev(xnew1,tck1y,der=0)
 bot2x = interpolate.splev(xnew1,tck2x,der=0)
 bot2y = interpolate.splev(xnew1,tck2y,der=0)
+bot3x = interpolate.splev(xnew1,tck3x,der=0)
+bot3y = interpolate.splev(xnew1,tck3y,der=0)
 
 bot1x_dot = interpolate.splev(xnew1,tck1x,der=1)
 bot1y_dot = interpolate.splev(xnew1,tck1y,der=1)
 bot2x_dot = interpolate.splev(xnew1,tck2x,der=1)
 bot2y_dot = interpolate.splev(xnew1,tck2y,der=1)
+bot3x_dot = interpolate.splev(xnew1,tck3x,der=1)
+bot3y_dot = interpolate.splev(xnew1,tck3y,der=1)
 
 bot1_dot = sqrt((bot1x_dot)**2+(bot1y_dot)**2)
 bot2_dot = sqrt((bot2x_dot)**2+(bot2y_dot)**2)
+bot3_dot = sqrt((bot3x_dot)**2+(bot3y_dot)**2)
 
 yaw1 = [math.atan2(bot1y_dot[i],bot1x_dot[i]) for i in range(len(bot1x_dot))]
 yaw2 = [math.atan2(bot2y_dot[i],bot2x_dot[i]) for i in range(len(bot2x_dot))]
+yaw3 = [math.atan2(bot3y_dot[i],bot3x_dot[i]) for i in range(len(bot3x_dot))]
 '''
 Path tracking
 '''
@@ -740,37 +772,49 @@ Path tracking
 dt = float(format((xnew1[2]-xnew1[1]),'.2f'))  # [s] time difference
 state = State(x=bot1x[0], y=bot1y[0], yaw=yaw1[0], v=0.0)
 state2 = State(x=bot2x[0],y=bot2y[0], yaw=yaw2[0], v=0.0)
+state3 = State(x=bot3x[0],y=bot3y[0], yaw=yaw3[0], v=0.0)
 
 lastelement = len(bot1x) - 1
 b1x = [0.0]
 b1y = [0.0]
 b2x = [0.0]
 b2y = [0.0]
+b3x = [0.0]
+b3y = [0.0]
 y1=[0.0] #yaw
 y2=[0.0] #yaw
+y3=[0.0] #yaw
 
 v1=[0.0]
 v2=[0.0]
+v3=[0.0]
 o1 = [0.0]
 o2 = [0.0]
+o3 = [0.0]
 target_ind1, mind = calc_target_index(state, bot1x, bot1y,0)
 target_ind2, mind = calc_target_index(state2, bot2x, bot2y,0)
+target_ind3, mind = calc_target_index(state3, bot3x, bot3y,0)
 
 rrt = RRT(start=[0, 0], goal=[10, 10],
               randAreax=[-2, 15],randAreay=[-2,15], obstacleList=circularObstacles)
     
 error = 0.3
 # while (lastelement  > target_ind1  or lastelement > target_ind2 ) and not (target_ind1==lastelement and target_ind2==lastelement) or :
-while ((abs(bot1x[lastelement] - b1x[len(b1x)-1])>error) or (abs(bot1y[lastelement]-b1y[len(b1y)-1])>error) or (abs(bot2x[lastelement] - b2x[len(b2x)-1])>error) or (abs(bot2y[lastelement]-b2y[len(b2y)-1])>error)) :
+while ((abs(bot1x[lastelement] - b1x[len(b1x)-1])>error) or (abs(bot1y[lastelement]-b1y[len(b1y)-1])>error) or (abs(bot2x[lastelement] - b2x[len(b2x)-1])>error) or (abs(bot2y[lastelement]-b2y[len(b2y)-1])>error) or (abs(bot3x[lastelement] - b3x[len(b3x)-1])>error) or (abs(bot3y[lastelement]-b3y[len(b3y)-1])>error)) :
     di, target_ind1 = stanley_control(state, bot1x, bot1y, yaw1, target_ind1)
     di2, target_ind2 = stanley_control(state2, bot2x, bot2y, yaw2, target_ind2)
-    target_ind1 = min(target_ind1,target_ind2)
+    di3, target_ind3 = stanley_control(state3, bot3x, bot3y, yaw3, target_ind3)
+    target_ind1 = min(target_ind1,target_ind2,target_ind3)
     target_ind2 = target_ind1
+    target_ind3 = target_ind1
     ai = PIDControl(target_speed, state.v,target_ind1,state,bot1x,bot1y)
     state = update(state, ai, di)
 
     ai2 = PIDControl(target_speed, state2.v,target_ind2,state2,bot2x,bot2y)
     state2 = update(state2, ai2, di2)
+
+    ai3 = PIDControl(target_speed, state3.v,target_ind3,state3,bot3x,bot3y)
+    state3 = update(state3, ai3, di3)
 
     b2x.append(state2.x)
     b2y.append(state2.y)
@@ -784,19 +828,44 @@ while ((abs(bot1x[lastelement] - b1x[len(b1x)-1])>error) or (abs(bot1y[lasteleme
     v1.append(state.v)
     o1.append(di)
 
+    b3x.append(state3.x)
+    b3y.append(state3.y)
+    y3.append(state3.yaw)
+    v3.append(state3.v)
+    o3.append(di3)
+
+    # print "b2",b2x[len(b2x)-1],b2y[len(b2y)-1]
+    # print "b1",b1x[len(b1x)-1],b1y[len(b1y)-1]
+    # print "b3",b3x[len(b3x)-1],b3y[len(b3y)-1]
+    list_length = len(b1x) - 1
+    points = [[b1x[list_length],b1y[list_length]],[b2x[list_length],b2y[list_length]],[b3x[list_length],b3y[list_length]]]
 
     if show_animation:
         plt.cla()
-        plt.plot(bot1x, bot1y, ".r", label="course")
-        plt.plot(b1x, b1y, "-b", label="trajectory")
-        plt.plot(bot1x[target_ind1], bot1y[target_ind1], "xg", label="target")
-        plt.plot(bot2x, bot2y, ".r", label="course")
-        plt.plot(b2x, b2y, "-b", label="trajectory")
+        # plt.plot(bot1x, bot1y, ".r", label="course")
+        # plt.plot(bot2x, bot2y, ".r", label="course")
+        # plt.plot(bot3x, bot3y, ".r", label="course")
+        # plt.plot(b1x, b1y, "-b", label="trajectory")
+        # plt.plot(b2x, b2y, "-r", label="trajectory")
+        # plt.plot(b3x, b3y, "-g", label="trajectory")
+
+        polygon = plt.Polygon(points,closed=None,fill='g')
+        plt.gca().add_patch(polygon)
+        plt.axis('scaled')
+        plt.plot(b1x[list_length], b1y[list_length], "xb", label="current")
+        plt.plot(b2x[list_length], b2y[list_length], "xr", label="current")
+        plt.plot(b3x[list_length], b3y[list_length], "xg", label="current")
+
+        plt.plot(Goal[0],Goal[1],"xr",label="goal")
+
+        # plt.plot(bot1x[target_ind1], bot1y[target_ind1], "xb", label="target")
+        # plt.plot(bot2x[target_ind2], bot2y[target_ind2], "xr", label="target")
+        # plt.plot(bot3x[target_ind3], bot3y[target_ind3], "xg", label="target")
+        # plt.plot(xc,yc,".g")
         # plt.show()
         for obstacles in circularObstacles:
                     # ax.add_patch(plt.Circle((obstacles[0], obstacles[1]), obstacles[2], color='b'))
                     rrt.PlotCircle(obstacles[0], obstacles[1], obstacles[2])
-        plt.plot(bot2x[target_ind2], bot2y[target_ind2], "xg", label="target")
         # ax.plot()
         plt.axis("equal")
         plt.grid(True)
@@ -814,20 +883,24 @@ while ((abs(bot1x[lastelement] - b1x[len(b1x)-1])>error) or (abs(bot1y[lasteleme
 
 print "len(v1)",len(v1)
 print "len(o1)",len(o1)
-print "v1"
-print v1
+# print "v1"
+# print v1
 max_vel1 = 0
 max_vel2 = 0
+max_vel3 = 0
 for i in range(len(v1)) :
     if v1[i] > max_vel1 : 
         max_vel1 = v1[i]
     if v2[i] > max_vel2 :
         max_vel2 = v2[i]
+    if v3[i] > max_vel3 :
+        max_vel3 = v3[i]
     if v1[i]>0.3 :
         print v1[i]
 
 print "max_vel1 :",max_vel1
 print "max_vel2 :",max_vel2
+print "max_vel3 :",max_vel3
 
 # if show_animation:
 #     plt.cla()
@@ -899,22 +972,22 @@ bot2_dot = (max_vel_actual/max_vel)*bot2_dot
 # print "len(omega1)",len(omega1)
 # print "len(omega2)",len(omega2)
 
-xu1,yu1,phi1=np.array([0]),np.array([0]),np.array([0])
-del_t = float(format((xnew1[2]-xnew1[1]),'.2f'))
-for i in range(len(o1)) :
-	phi1 = np.append(phi1,abs(phi1[len(phi1)-1]+(o1[i])*del_t))
-	phi1[len(phi1)-1] = (math.atan2(math.tan(phi1[len(phi1)-1]),1))#+math.pi)
-	xu1=np.append(xu1,xu1[len(xu1)-1]+v1[i]*math.cos(phi1[len(phi1)-1])*del_t)
-	yu1=np.append(yu1,yu1[len(yu1)-1]+v1[i]*math.sin(phi1[len(phi1)-1])*del_t)
+# xu1,yu1,phi1=np.array([0]),np.array([0]),np.array([0])
+# del_t = float(format((xnew1[2]-xnew1[1]),'.2f'))
+# for i in range(len(o1)) :
+#     phi1 = np.append(phi1,abs(phi1[len(phi1)-1]+(o1[i])*del_t))
+#     phi1[len(phi1)-1] = (math.atan2(math.tan(phi1[len(phi1)-1]),1))#+math.pi)
+#     xu1=np.append(xu1,xu1[len(xu1)-1]+v1[i]*math.cos(phi1[len(phi1)-1])*del_t)
+#     yu1=np.append(yu1,yu1[len(yu1)-1]+v1[i]*math.sin(phi1[len(phi1)-1])*del_t)
 
-print "xu1"
-print xu1
-print "yu1"
-print yu1
-print "phi1"
-print phi1
-plt.figure()
-plt.plot(xu1,yu1,'o',bot1x,bot1y,'--')
+# print "xu1"
+# print xu1
+# print "yu1"
+# print yu1
+# print "phi1"
+# print phi1
+# plt.figure()
+# plt.plot(xu1,yu1,'o',bot1x,bot1y,'--')
 
 
 # print "del_t",del_t
@@ -922,13 +995,13 @@ plt.plot(xu1,yu1,'o',bot1x,bot1y,'--')
 # print phi
 # # print "xu"
 # # for i in range(len(xu)):
-# # 	print xu[i]
+# #     print xu[i]
 # # print xu
 # print "bot1x"
 # print bot1x
 # # print "yu"
 # # for i in range(len(yu)) :
-# # 	print yu[i]
+# #     print yu[i]
 # # print yu
 # print "bot1y"
 # print bot1y
@@ -945,10 +1018,10 @@ plt.plot(xu1,yu1,'o',bot1x,bot1y,'--')
 '''
 ax2.plot(bot1x,bot1y,'-g',bot2x,bot2y,'-b')
 for i in range(len(bot1x)):
-	# print bot1y[i]
-	# ax1.add_patch(plt.Circle((long_x[i],long_y[i]),2*bot_rad,color='b'))
-	ax1.add_patch(plt.Circle((bot1x[i],bot1y[i]),bot_rad,color='g'))
-	ax1.add_patch(plt.Circle((bot2x[i],bot2y[i]),bot_rad,color='r'))
+    # print bot1y[i]
+    # ax1.add_patch(plt.Circle((long_x[i],long_y[i]),2*bot_rad,color='b'))
+    ax1.add_patch(plt.Circle((bot1x[i],bot1y[i]),bot_rad,color='g'))
+    ax1.add_patch(plt.Circle((bot2x[i],bot2y[i]),bot_rad,color='r'))
 
 # plt.plot(bot1x,bot1y,'-g',bot2x,bot2y,'-r')
 ax1.plot()
