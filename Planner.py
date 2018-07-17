@@ -36,9 +36,7 @@ max_vel = 4
 max_vel_actual = 0.3
 bot_rad = 0.13
 target_speed = 0.08
-Start = [0,0]
-Goal = [10,10]
-circularObstacles = [(5, 2.5, 2),(1,6,2.005),(9,4,2)]
+circularObstacles = [(-5, 2.5, 2),(-1,6,2.005),(-10,2,2),(-1,1,0.5)]
 
 # path_feasible = False 
 safety_margin = 0.3 # gap between robots to avoid collision
@@ -49,8 +47,7 @@ Path Planning Sample Code with Randamized Rapidly-Exploring Random Trees (RRT)
 @author: AtsushiSakai(@Atsushi_twi)
 
 """
-Start = [0,0]
-Goal = [10,10]
+
 
 show_animation = True
 
@@ -153,7 +150,7 @@ class RRT():
 
         plt.plot(self.start.x, self.start.y, "xr")
         plt.plot(self.end.x, self.end.y, "xr")
-        plt.axis([-2, 15, -2, 15])
+        plt.axis([self.minrandx,self.maxrandx,self.minrandy,self.maxrandy])
         plt.grid(True)
         plt.pause(0.01)
 
@@ -329,9 +326,9 @@ def PathSmoothing(path, maxIter, obstacleList):
     return path
 
 
-def main():
+def main(Start,Goal):
     rrt = RRT(start=Start, goal=Goal,
-              randAreax=[-2, 15],randAreay=[-2,15], obstacleList=circularObstacles)
+              randAreax=[-2.9,-0.24],randAreay=[.26,3.85], obstacleList=circularObstacles)
     path = rrt.Planning(animation=show_animation)
     path.reverse()
     # sine path

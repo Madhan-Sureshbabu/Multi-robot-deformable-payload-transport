@@ -23,7 +23,7 @@ from numpy.linalg import inv
 from scipy import interpolate
 from scipy.interpolate import interp1d
 from scipy.interpolate import UnivariateSpline
-import cubic_spline_planner
+# import cubic_spline_planner
 from scipy.interpolate import spalde
 from scipy.interpolate import splev
 from scipy.interpolate import splrep
@@ -31,7 +31,7 @@ from scipy.interpolate import spline
 import random
 import copy
 import sympy
-
+import rospy
 """
 Path Planning Sample Code with Randamized Rapidly-Exploring Random Trees (RRT)
 
@@ -358,7 +358,7 @@ sys.path.append("../../PathPlanning/CubicSpline/")
 
 import math
 import matplotlib.pyplot as plt
-import cubic_spline_planner
+# import cubic_spline_planner
 
 
 k = 0.5 #1 #    0.5  # control gain
