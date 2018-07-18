@@ -46,7 +46,7 @@ def handle_quaternion_robot2(msg):
 if __name__ == '__main__':
     rospy.init_node('quaternion_to_RPY',anonymous=True)
     # turtlename = rospy.get_param('~turtle')
-    rospy.Subscriber('/Robot0_odom',Odometry,handle_quaternion_robot1)
+    rospy.Subscriber('/Robot0_odom',Odometry,handle_quaternion_robot0)
     pub0 = rospy.Publisher('poseRPY0',Pose2D,queue_size=1)
     pub1 = rospy.Publisher('poseRPY1',Pose2D,queue_size=1)
     pub2 = rospy.Publisher('poseRPY2',Pose2D,queue_size=1)

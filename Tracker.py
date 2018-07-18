@@ -57,9 +57,9 @@ author: Atsushi Sakai (@Atsushi_twi)
 
 
 k = 0.5 #1 #    0.5  # control gain
-Kp = 1.0  # speed propotional gain
+Kp = 0.7  # speed propotional gain
 L = 0.6  # [m] Wheel base of vehicle
-Kdis = 0.1
+Kdis = 0.07
 max_steer = math.radians(30.0)  # [rad] max steering angle
 
 show_animation = True

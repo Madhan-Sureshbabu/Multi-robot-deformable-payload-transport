@@ -43,7 +43,7 @@ def get_position(msg):
     global position,Start,Goal
     position = msg
     Start = [position.x,position.y]
-    Goal = [-2,3]
+    Goal = [-2,3.5]
     # print "current : ",position
     # if plan_flag == 0 :
         # plan()
