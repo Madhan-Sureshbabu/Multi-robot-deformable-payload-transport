@@ -36,6 +36,7 @@ import sympy
 import Planner as pln
 import Tracker as tr
 from geometry_msgs.msg import Pose2D 
+from geometry_msgs.msg import Twist
 import rospy
 import time
 
@@ -43,7 +44,7 @@ def get_position(msg):
     global position,Start,Goal
     position = msg
     Start = [position.x,position.y]
-    Goal = [-2,3.5]
+    Goal = [-2.5,0.8]
     # print "current : ",position
     # if plan_flag == 0 :
         # plan()
@@ -57,7 +58,6 @@ def ros_init():
         rospy.init_node('one_bot')
         # turtlename = rospy.get_param('~turtle')
         rospy.Subscriber('/poseRPY0',Pose2D,get_position,queue_size=1)
-        # pub = rospy.Publisher('2D_pose',Pose2D)
         # pose_msg = Pose2D()
         # rospy.spin()
         time.sleep(0.5)
@@ -65,6 +65,8 @@ def ros_init():
         pass
 # Start = [0,0]
 
+pub_vel = rospy.Publisher('/cmd_vel',Twist,queue_size=1)
+vel_msg = Twist()
 position = Pose2D()
 ros_init()
 
@@ -484,6 +486,9 @@ while ((abs(bot1x[lastelement] - b1x[len(b1x)-1])>error) or (abs(bot1y[lasteleme
     y1.append(state.yaw)
     v1.append(state.v)
     o1.append(di)
+    vel_msg.linear.x = v1[len(v1)-1]
+    vel_msg.angular.z = o1[len(o1)-1]
+    pub_vel.publish(vel_msg)
 
     # b3x.append(state3.x)
     # b3y.append(state3.y)
@@ -497,25 +502,25 @@ while ((abs(bot1x[lastelement] - b1x[len(b1x)-1])>error) or (abs(bot1y[lasteleme
     list_length = len(b1x) - 1
     # points = [[b1x[list_length],b1y[list_length]],[b2x[list_length],b2y[list_length]],[b3x[list_length],b3y[list_length]]]
 
-    if show_animation:
+    if show_animation and len(b1x)!=1:
         plt.cla()
-        # plt.plot(bot1x, bot1y, ".r", label="course")
+        plt.plot(bot1x, bot1y, ".r", label="course")
         # plt.plot(bot2x, bot2y, ".r", label="course")
         # plt.plot(bot3x, bot3y, ".r", label="course")
-        plt.plot(b1x, b1y, "-b", label="trajectory")
+        # plt.plot(b1x, b1y, "-b", label="trajectory")
         # plt.plot(b2x, b2y, "-r", label="trajectory")
         # plt.plot(b3x, b3y, "-g", label="trajectory")
 
         # polygon = plt.Polygon(points,closed=None,fill='g')
         # plt.gca().add_patch(polygon)
         # plt.axis('scaled')
-        # plt.plot(b1x[list_length], b1y[list_length], "xb", label="current")
+        plt.plot(b1x[list_length], b1y[list_length], "xb", label="current")
         # plt.plot(b2x[list_length], b2y[list_length], "xr", label="current")
         # plt.plot(b3x[list_length], b3y[list_length], "xg", label="current")
 
-        plt.plot(Goal[0],Goal[1],"xr",label="goal")
+        # plt.plot(Goal[0],Goal[1],"xr",label="goal")
 
-        plt.plot(bot1x[target_ind1], bot1y[target_ind1], "xb", label="target")
+        # plt.plot(bot1x[target_ind1], bot1y[target_ind1], "xb", label="target")
         # plt.plot(bot2x[target_ind2], bot2y[target_ind2], "xr", label="target")
         # plt.plot(bot3x[target_ind3], bot3y[target_ind3], "xg", label="target")
         # plt.plot(xc,yc,".g")
@@ -542,6 +547,8 @@ print "len(v1)",len(v1)
 print "len(o1)",len(o1)
 # print "v1"
 # print v1
+# print "o1"
+# print o1
 max_vel1 = 0
 max_vel2 = 0
 max_vel3 = 0

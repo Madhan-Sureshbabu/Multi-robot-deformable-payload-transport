@@ -41,8 +41,8 @@ max_vel = 4
 max_vel_actual = 0.3
 bot_rad = 0.13
 target_speed = 0.008
-Start = [0,0]
-Goal = [-5,10]
+# Start = [0,0]
+# Goal = [-2.5,3]
 circularObstacles = [(5, 2.5, 2),(1,6,2.005),(9,4,2)]
 
 # path_feasible = False 
@@ -56,9 +56,9 @@ author: Atsushi Sakai (@Atsushi_twi)
 """
 
 
-k = 0.5 #1 #    0.5  # control gain
+k = 0.2 #1 #    0.5  # control gain
 Kp = 0.7  # speed propotional gain
-L = 0.6  # [m] Wheel base of vehicle
+L = 0.4  # [m] Wheel base of vehicle
 Kdis = 0.07
 max_steer = math.radians(30.0)  # [rad] max steering angle
 
@@ -81,13 +81,13 @@ def update(state, a, delta,dt,position):
     elif delta <= -max_steer:
         delta = -max_steer
 
-    # state.x = position.x
-    # state.y = position.y
-    # state.yaw = position.theta
-    state.x = state.x + state.v * math.cos(state.yaw) * dt
-    state.y = state.y + state.v * math.sin(state.yaw) * dt
-    state.yaw = state.yaw + state.v / L * math.tan(delta) * dt
-    state.yaw = pi_2_pi(state.yaw)
+    state.x = position.x
+    state.y = position.y
+    state.yaw = position.theta
+    # state.x = state.x + state.v * math.cos(state.yaw) * dt
+    # state.y = state.y + state.v * math.sin(state.yaw) * dt
+    # state.yaw = state.yaw + state.v / L * math.tan(delta) * dt
+    # state.yaw = pi_2_pi(state.yaw)
     state.v = state.v + a * dt
     # state.v = a * dt
 
