@@ -18,6 +18,7 @@ def handle_quaternion_robot0(msg):
     # print pose_msg
     pub0.publish(pose_msg)
 
+
 def handle_quaternion_robot1(msg):
     global eu
     # print msg.pose.pose
@@ -47,6 +48,7 @@ if __name__ == '__main__':
     rospy.init_node('quaternion_to_RPY',anonymous=True)
     # turtlename = rospy.get_param('~turtle')
     rospy.Subscriber('/Robot0_odom',Odometry,handle_quaternion_robot0)
+    rospy.Subscriber('/Robot4_odom',Odometry,handle_quaternion_robot1)
     pub0 = rospy.Publisher('poseRPY0',Pose2D,queue_size=1)
     pub1 = rospy.Publisher('poseRPY1',Pose2D,queue_size=1)
     pub2 = rospy.Publisher('poseRPY2',Pose2D,queue_size=1)

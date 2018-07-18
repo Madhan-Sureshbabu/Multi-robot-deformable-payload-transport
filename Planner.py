@@ -36,7 +36,7 @@ max_vel = 4
 max_vel_actual = 0.3
 bot_rad = 0.13
 target_speed = 0.08
-circularObstacles = [(-5, 2.5, 2),(-1,6,2.005),(-10,2,2),(-1,1,1)]
+circularObstacles = [(-5, 2.5, 2),(-1,6,2.005),(-10,2,2),(-2.2,2,0.5),(-0.8,3,0.5)]
 
 # path_feasible = False 
 safety_margin = 0.3 # gap between robots to avoid collision

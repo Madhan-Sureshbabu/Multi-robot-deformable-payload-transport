@@ -74,20 +74,20 @@ class State:
         self.v = v
 
 
-def update(state, a, delta,dt,position):
+def update(state, a, delta,dt,positionx):
 
     if delta >= max_steer:
         delta = max_steer
     elif delta <= -max_steer:
         delta = -max_steer
 
-    state.x = position.x
-    state.y = position.y
-    state.yaw = position.theta
-    # state.x = state.x + state.v * math.cos(state.yaw) * dt
-    # state.y = state.y + state.v * math.sin(state.yaw) * dt
-    # state.yaw = state.yaw + state.v / L * math.tan(delta) * dt
-    # state.yaw = pi_2_pi(state.yaw)
+    # state.x = positionx.x
+    # state.y = positionx.y
+    # state.yaw = positionx.theta
+    state.x = state.x + state.v * math.cos(state.yaw) * dt
+    state.y = state.y + state.v * math.sin(state.yaw) * dt
+    state.yaw = state.yaw + state.v / L * math.tan(delta) * dt
+    state.yaw = pi_2_pi(state.yaw)
     state.v = state.v + a * dt
     # state.v = a * dt
 
