@@ -34,9 +34,9 @@ gamma = math.pi/6
 flag = 0
 max_vel = 4
 max_vel_actual = 0.3
-bot_rad = 0.13
+bot_rad = 0.15
 target_speed = 0.08
-circularObstacles = [(-5, 2.5, 2),(-1,6,2.005),(-10,2,2),(-2.2,2,0.5),(-0.8,3,0.5)]
+circularObstacles = [(-0.5,2.3,0.5),(-2.4,2.0,0.5),(-3.2,2.3,0.5)]#(-5, 2.5, 2),(-1,6,2.005),(-10,2,2),
 
 # path_feasible = False 
 safety_margin = 0.3 # gap between robots to avoid collision
@@ -60,7 +60,7 @@ class RRT():
     Class for RRT Planning
     """
 
-    def __init__(self, start, goal, obstacleList, randAreax,randAreay, expandDis=1.0, goalSampleRate=50, maxIter=1000):
+    def __init__(self, start, goal, obstacleList, randAreax,randAreay, expandDis=0.3, goalSampleRate=50, maxIter=1000):
         """
         Setting Parameter
 
@@ -328,7 +328,7 @@ def PathSmoothing(path, maxIter, obstacleList):
 
 def main(Start,Goal):
     rrt = RRT(start=Start, goal=Goal,
-              randAreax=[-2.9,-0.24],randAreay=[.26,3.85], obstacleList=circularObstacles)
+              randAreax=[-3.3,-0.1],randAreay=[0,4], obstacleList=circularObstacles)
     path = rrt.Planning(animation=show_animation)
     path.reverse()
     # sine path

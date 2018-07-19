@@ -49,7 +49,7 @@ def get_position1(msg):
     global position1,Start,Goal
     position1 = msg
     Start = [(position0.x+position1.x)/2,(position0.y+position1.y)/2]
-    Goal = [-1.1,1.1]
+    Goal = [-1.2,1.1]
 
 
 def ros_init():
@@ -251,8 +251,8 @@ gamma = math.pi/6
 flag = 0
 max_vel = 4
 max_vel_actual = 0.3
-bot_rad = 0.2
-target_speed = 0.08
+bot_rad = pln.bot_rad
+target_speed = tr.target_speed
 
 # path_feasible = False 
 safety_margin = 0.3 # gap between robots to avoid collision
@@ -304,7 +304,7 @@ vel_0 = sqrt((vel_x)**2+(vel_y)**2)
 w_0 = vel_0 * k0
 for i in range(NUM_ROBOTS):
     for j in range(len(long_path)) :
-        upper_bound[i][j] = 0.5
+        upper_bound[i][j] = 0.4
         lower_bound[i] = bot_rad + 0.01
 
 guess1 = np.array([0.31001,math.pi/2])
@@ -463,7 +463,7 @@ target_ind2, mind = tr.calc_target_index(state2, bot2x, bot2y,0)
 rrt = pln.RRT(start=[0, 0], goal=[10, 10],
               randAreax=[-2, 15],randAreay=[-2,15], obstacleList=pln.circularObstacles)
     
-error = 0.3
+error = 0.2
 # while (lastelement  > target_ind1  or lastelement > target_ind2 ) and not (target_ind1==lastelement and target_ind2==lastelement) or :
 while ((abs(bot1x[lastelement] - b1x[len(b1x)-1])>error) or (abs(bot1y[lastelement]-b1y[len(b1y)-1])>error)or (abs(bot2x[lastelement] - b2x[len(b2x)-1])>error) or (abs(bot2y[lastelement]-b2y[len(b2y)-1])>error)):# or (abs(bot3x[lastelement] - b3x[len(b3x)-1])>error) or (abs(bot3y[lastelement]-b3y[len(b3y)-1])>error)) :
     di, target_ind1 = tr.stanley_control(state, bot1x, bot1y, yaw1, target_ind1)
@@ -495,11 +495,11 @@ while ((abs(bot1x[lastelement] - b1x[len(b1x)-1])>error) or (abs(bot1y[lasteleme
     
     vel_msg.linear.x = v1[len(v1)-1]
     vel_msg.angular.z = o1[len(o1)-1]
-    # pub_vel0.publish(vel_msg)
+    pub_vel0.publish(vel_msg)
 
     vel_msg.linear.x = v2[len(v2)-1]
     vel_msg.angular.z = o2[len(o2)-1]
-    # pub_vel1.publish(vel_msg)
+    pub_vel1.publish(vel_msg)
 
     # b3x.append(state3.x)
     # b3y.append(state3.y)
@@ -515,8 +515,8 @@ while ((abs(bot1x[lastelement] - b1x[len(b1x)-1])>error) or (abs(bot1y[lasteleme
 
     if show_animation and len(b1x)!=1:
         plt.cla()
-        plt.plot(bot1x, bot1y, ".r", label="course")
-        plt.plot(bot2x, bot2y, ".r", label="course")
+        plt.plot(bot1x, bot1y, "or", label="course")
+        plt.plot(bot2x, bot2y, "or", label="course")
         # plt.plot(bot3x, bot3y, ".r", label="course")
         # plt.plot(b1x, b1y, "-b", label="trajectory")
         # plt.plot(b2x, b2y, "-r", label="trajectory")
@@ -525,8 +525,8 @@ while ((abs(bot1x[lastelement] - b1x[len(b1x)-1])>error) or (abs(bot1y[lasteleme
         # polygon = plt.Polygon(points,closed=None,fill='g')
         # plt.gca().add_patch(polygon)
         # plt.axis('scaled')
-        plt.plot(b1x[list_length], b1y[list_length], "xb", label="current")
-        plt.plot(b2x[list_length], b2y[list_length], "xr", label="current")
+        plt.plot(b1x[list_length], b1y[list_length], "ob", label="current")
+        plt.plot(b2x[list_length], b2y[list_length], "ob", label="current")
         # plt.plot(b3x[list_length], b3y[list_length], "xg", label="current")
 
         # plt.plot(Goal[0],Goal[1],"xr",label="goal")
@@ -534,7 +534,7 @@ while ((abs(bot1x[lastelement] - b1x[len(b1x)-1])>error) or (abs(bot1y[lasteleme
         # plt.plot(bot1x[target_ind1], bot1y[target_ind1], "xb", label="target")
         # plt.plot(bot2x[target_ind2], bot2y[target_ind2], "xr", label="target")
         # plt.plot(bot3x[target_ind3], bot3y[target_ind3], "xg", label="target")
-        plt.plot(xc,yc,".g")    
+        plt.plot(xc,yc,"og")    
         # plt.show()
         for obstacles in pln.circularObstacles:
                     # ax.add_patch(plt.Circle((obstacles[0], obstacles[1]), obstacles[2], color='b'))
@@ -566,15 +566,15 @@ max_vel3 = 0
 for i in range(len(v1)) :
     if v1[i] > max_vel1 : 
         max_vel1 = v1[i]
-    # if v2[i] > max_vel2 :
-    #     max_vel2 = v2[i]
+    if v2[i] > max_vel2 :
+        max_vel2 = v2[i]
     # if v3[i] > max_vel3 :
     #     max_vel3 = v3[i]
     if v1[i]>0.3 :
         print v1[i]
 
 print "max_vel1 :",max_vel1
-# print "max_vel2 :",max_vel2
+print "max_vel2 :",max_vel2
 # print "max_vel3 :",max_vel3
 
 # if show_animation:
