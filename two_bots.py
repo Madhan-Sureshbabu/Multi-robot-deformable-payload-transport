@@ -513,7 +513,7 @@ while ((abs(bot1x[lastelement] - b1x[len(b1x)-1])>error) or (abs(bot1y[lasteleme
     list_length = len(b1x) - 1
     # points = [[b1x[list_length],b1y[list_length]],[b2x[list_length],b2y[list_length]],[b3x[list_length],b3y[list_length]]]
 
-    if show_animation and len(b1x)!=1:
+    if show_animation:
         plt.cla()
         plt.plot(bot1x, bot1y, "or", label="course")
         plt.plot(bot2x, bot2y, "or", label="course")

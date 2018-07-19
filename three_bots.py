@@ -36,37 +36,36 @@ import sympy
 import Planner as pln
 import Tracker as tr
 from geometry_msgs.msg import Pose2D 
+from geometry_msgs.msg import Twist 
 import rospy
 import time
 
-def get_position_bot0(msg):
-    global position_bot0,Start,Goal
-    position_bot0 = msg
-    Start = [position_bot0.x,position_bot0.y]
-    Goal = [-2,3]
+def get_position0(msg):
+    global position0,Start,Goal
+    position0 = msg
+    
 
 
-def get_position_bot1(msg):
-    global position_bot1,Start,Goal
-    position_bot1 = msg
-    # Start = [position.x,position.y]
-    # Goal = [-2,3]
+def get_position1(msg):
+    global position1,Start,Goal
+    position1 = msg
+    
 
 
-def get_position_bot2(msg):
-    global position_bot2,Start,Goal
-    position_bot2 = msg
-    # Start = [position.x,position.y]
-    # Goal = [-2,3]
+def get_position2(msg):
+    global position2,Start,Goal
+    position2 = msg
+    Start = [(position0.x+position1.x+position2.x)/3,(position0.y+position1.y+position2.y)/3]
+    Goal = [-1.1,1.1]
 
 
 def ros_init():
     try :
         rospy.init_node('three_bots')
         # turtlename = rospy.get_param('~turtle')
-        rospy.Subscriber('/poseRPY0',Pose2D,get_position_bot0,queue_size=1)
-        rospy.Subscriber('/poseRPY1',Pose2D,get_position_bot1,queue_size=1)
-        rospy.Subscriber('/poseRPY2',Pose2D,get_position_bot2,queue_size=1)
+        rospy.Subscriber('/poseRPY0',Pose2D,get_position0,queue_size=1)
+        rospy.Subscriber('/poseRPY1',Pose2D,get_position1,queue_size=1)
+        rospy.Subscriber('/poseRPY2',Pose2D,get_position2,queue_size=1)
         # pub = rospy.Publisher('2D_pose',Pose2D)
         # pose_msg = Pose2D()
         # rospy.spin()
@@ -75,52 +74,15 @@ def ros_init():
         pass
 # Start = [0,0]
 
-position_bot0 = Pose2D()
-position_bot1 = Pose2D()
-position_bot2 = Pose2D()
+pub_vel0 = rospy.Publisher('/R1/cmd_vel',Twist,queue_size=1)
+pub_vel1 = rospy.Publisher('/R2/cmd_vel',Twist,queue_size=1)
+pub_vel2 = rospy.Publisher('/R3/cmd_vel',Twist,queue_size=1)
+vel_msg = Twist()
+position0 = Pose2D()
+position1 = Pose2D()
+position2 = Pose2D()
 ros_init()
 
-
-
-NUM_ROBOTS = 3
-gamma = math.pi/6
-flag = 0
-max_vel = 4
-max_vel_actual = 0.3
-bot_rad = 0.13
-target_speed = 0.08
-Start = [0,0]
-Goal = [10,10]
-
-
-# path_feasible = False 
-safety_margin = 0.3 # gap between robots to avoid collision
-show_animation = True
-
-
-
-vel = {} #in M0 frame
-vel_global = {} #in global frame
-pos = {}
-w = {}
-Jzz = {}
-mass = {}
-bot_paths = {}
-bot1x,bot1y,bot2x,bot2y = {},{},{},{}
-Bot_path = {}
-circle = []
-lower_bound = {}
-upper_bound = {}
-y_intersection = {}
-
-for i in range(NUM_ROBOTS):
-    mass[i] = 1
-    vel_global[i] = {}
-    bot_paths[i] = {}
-    Bot_path[i]=np.array([[0,0]])
-    lower_bound[i] = {}
-    upper_bound[i] = {}
-    print Bot_path[i]
 
 
 def velocity_of_VS_vertices(var):
@@ -242,6 +204,47 @@ def bounds_calculator(hom_matrix,j):
     # print upper_bound[1][j]
 
 
+NUM_ROBOTS = 3
+gamma = math.pi/6
+flag = 0
+max_vel = 4
+max_vel_actual = 0.3
+bot_rad = pln.bot_rad
+target_speed = tr.target_speed
+
+
+# path_feasible = False 
+safety_margin = 0.3 # gap between robots to avoid collision
+show_animation = True
+
+
+
+vel = {} #in M0 frame
+vel_global = {} #in global frame
+pos = {}
+w = {}
+Jzz = {}
+mass = {}
+bot_paths = {}
+bot1x,bot1y,bot2x,bot2y = {},{},{},{}
+Bot_path = {}
+circle = []
+lower_bound = {}
+upper_bound = {}
+y_intersection = {}
+
+for i in range(NUM_ROBOTS):
+    mass[i] = 1
+    vel_global[i] = {}
+    bot_paths[i] = {}
+    Bot_path[i]=np.array([[0,0]])
+    lower_bound[i] = {}
+    upper_bound[i] = {}
+    print Bot_path[i]
+
+print "start :",Start
+print "goal :",Goal
+
 pathList = pln.main(Start,Goal)
 
 pathList = np.array(pathList) 
@@ -255,7 +258,7 @@ vel_0 = sqrt((vel_x)**2+(vel_y)**2)
 w_0 = vel_0 * k0
 for i in range(NUM_ROBOTS):
     for j in range(len(long_path)) :
-        upper_bound[i][j] = 0.5
+        upper_bound[i][j] = 0.4
         lower_bound[i] = bot_rad + 0.01
 
 guess = np.array([0.31001,.31001,.31001,0,math.pi/2,math.pi/2])
@@ -316,6 +319,12 @@ for j in range(1+len(long_path)) :
 Bot_path[0] = np.delete(Bot_path[0],0,0)
 Bot_path[1] = np.delete(Bot_path[1],0,0)
 Bot_path[2] = np.delete(Bot_path[2],0,0)
+Bot_path[0] = np.delete(Bot_path[0],len(Bot_path[0])-1,0)
+Bot_path[1] = np.delete(Bot_path[1],len(Bot_path[1])-1,0)
+Bot_path[2] = np.delete(Bot_path[2],len(Bot_path[2])-1,0)
+Bot_path[0] = np.delete(Bot_path[0],len(Bot_path[0])-1,0)
+Bot_path[1] = np.delete(Bot_path[1],len(Bot_path[1])-1,0)
+Bot_path[2] = np.delete(Bot_path[2],len(Bot_path[2])-1,0)
  
 bot1x,bot1y = Bot_path[0].T
 bot2x,bot2y = Bot_path[1].T
@@ -374,20 +383,20 @@ Path tracking
 '''
 
 dt = float(format((xnew1[2]-xnew1[1]),'.2f'))  # [s] time difference
-state  = tr.State(x=position_bot0.x, y=position_bot0.y, yaw=position_bot0.theta, v=0.0)
-state2 = tr.State(x=position_bot1.x,y=position_bot1.y, yaw=position_bot1.theta, v=0.0)
-state3 = tr.State(x=position_bot2.x,y=position_bot2.y, yaw=position_bot2.theta, v=0.0)
+state  = tr.State(x=position0.x, y=position0.y, yaw=position0.theta, v=0.0)
+state2 = tr.State(x=position1.x,y=position1.y, yaw=position1.theta, v=0.0)
+state3 = tr.State(x=position2.x,y=position2.y, yaw=position2.theta, v=0.0)
 
 lastelement = len(bot1x) - 1
-b1x = [0.0]
-b1y = [0.0]
-b2x = [0.0]
-b2y = [0.0]
-b3x = [0.0]
-b3y = [0.0]
-y1=[0.0] #yaw
-y2=[0.0] #yaw
-y3=[0.0] #yaw
+b1x = [state.x]
+b1y = [state.y]
+b2x = [state2.x]
+b2y = [state2.y]
+b3x = [state3.x]
+b3y = [state3.y]
+y1=[state.yaw] #yaw
+y2=[state2.yaw] #yaw
+y3=[state3.yaw] #yaw
 
 v1=[0.0]
 v2=[0.0]
@@ -402,7 +411,7 @@ target_ind3, mind = tr.calc_target_index(state3, bot3x, bot3y,0)
 rrt = pln.RRT(start=[0, 0], goal=[10, 10],
               randAreax=[-2, 15],randAreay=[-2,15], obstacleList=pln.circularObstacles)
     
-error = 0.3
+error = 0.2
 # while (lastelement  > target_ind1  or lastelement > target_ind2 ) and not (target_ind1==lastelement and target_ind2==lastelement) or :
 while ((abs(bot1x[lastelement] - b1x[len(b1x)-1])>error) or (abs(bot1y[lastelement]-b1y[len(b1y)-1])>error) or (abs(bot2x[lastelement] - b2x[len(b2x)-1])>error) or (abs(bot2y[lastelement]-b2y[len(b2y)-1])>error) or (abs(bot3x[lastelement] - b3x[len(b3x)-1])>error) or (abs(bot3y[lastelement]-b3y[len(b3y)-1])>error)) :
     di, target_ind1 = tr.stanley_control(state, bot1x, bot1y, yaw1, target_ind1)
@@ -412,31 +421,41 @@ while ((abs(bot1x[lastelement] - b1x[len(b1x)-1])>error) or (abs(bot1y[lasteleme
     target_ind2 = target_ind1
     target_ind3 = target_ind1
     ai = tr.PIDControl(target_speed, state.v,target_ind1,state,bot1x,bot1y)
-    state = tr.update(state, ai, di,dt)
+    state = tr.update(state, ai, di,dt,position0)
 
     ai2 = tr.PIDControl(target_speed, state2.v,target_ind2,state2,bot2x,bot2y)
-    state2 = tr.update(state2, ai2, di2,dt)
+    state2 = tr.update(state2, ai2, di2,dt,position1)
 
     ai3 = tr.PIDControl(target_speed, state3.v,target_ind3,state3,bot3x,bot3y)
-    state3 = tr.update(state3, ai3, di3,dt)
-
-    b2x.append(state2.x)
-    b2y.append(state2.y)
-    y2.append(state2.yaw)
-    v2.append(state2.v)
-    o2.append(di)
+    state3 = tr.update(state3, ai3, di3,dt,position2)
 
     b1x.append(state.x)
     b1y.append(state.y)
     y1.append(state.yaw)
     v1.append(state.v)
     o1.append(di)
+    vel_msg.linear.x = v1[len(v1)-1]
+    vel_msg.angular.z = o1[len(o1)-1]
+    pub_vel0.publish(vel_msg)
+
+    b2x.append(state2.x)
+    b2y.append(state2.y)
+    y2.append(state2.yaw)
+    v2.append(state2.v)
+    o2.append(di2)
+    vel_msg.linear.x = v2[len(v2)-1]
+    vel_msg.angular.z = o2[len(o2)-1]
+    pub_vel1.publish(vel_msg)
+
 
     b3x.append(state3.x)
     b3y.append(state3.y)
     y3.append(state3.yaw)
     v3.append(state3.v)
     o3.append(di3)
+    vel_msg.linear.x = v3[len(v3)-1]
+    vel_msg.angular.z = o3[len(o3)-1]
+    pub_vel2.publish(vel_msg)
 
     # print "b2",b2x[len(b2x)-1],b2y[len(b2y)-1]
     # print "b1",b1x[len(b1x)-1],b1y[len(b1y)-1]
@@ -446,9 +465,9 @@ while ((abs(bot1x[lastelement] - b1x[len(b1x)-1])>error) or (abs(bot1y[lasteleme
 
     if show_animation:
         plt.cla()
-        # plt.plot(bot1x, bot1y, ".r", label="course")
-        # plt.plot(bot2x, bot2y, ".r", label="course")
-        # plt.plot(bot3x, bot3y, ".r", label="course")
+        plt.plot(bot1x, bot1y, "ob", label="course")
+        plt.plot(bot2x, bot2y, "or", label="course")
+        plt.plot(bot3x, bot3y, "og", label="course")
         # plt.plot(b1x, b1y, "-b", label="trajectory")
         # plt.plot(b2x, b2y, "-r", label="trajectory")
         # plt.plot(b3x, b3y, "-g", label="trajectory")
@@ -456,16 +475,16 @@ while ((abs(bot1x[lastelement] - b1x[len(b1x)-1])>error) or (abs(bot1y[lasteleme
         polygon = plt.Polygon(points,closed=None,fill='g')
         plt.gca().add_patch(polygon)
         plt.axis('scaled')
-        plt.plot(b1x[list_length], b1y[list_length], "xb", label="current")
-        plt.plot(b2x[list_length], b2y[list_length], "xr", label="current")
-        plt.plot(b3x[list_length], b3y[list_length], "xg", label="current")
+        plt.plot(b1x[list_length], b1y[list_length], "ob", label="current")
+        plt.plot(b2x[list_length], b2y[list_length], "or", label="current")
+        plt.plot(b3x[list_length], b3y[list_length], "og", label="current")
 
         plt.plot(Goal[0],Goal[1],"xr",label="goal")
 
-        # plt.plot(bot1x[target_ind1], bot1y[target_ind1], "xb", label="target")
-        # plt.plot(bot2x[target_ind2], bot2y[target_ind2], "xr", label="target")
-        # plt.plot(bot3x[target_ind3], bot3y[target_ind3], "xg", label="target")
-        # plt.plot(xc,yc,".g")
+        plt.plot(bot1x[target_ind1], bot1y[target_ind1], "xb", label="target")
+        plt.plot(bot2x[target_ind2], bot2y[target_ind2], "xr", label="target")
+        plt.plot(bot3x[target_ind3], bot3y[target_ind3], "xg", label="target")
+        plt.plot(xc,yc,".g")
         # plt.show()
         for obstacles in pln.circularObstacles:
                     # ax.add_patch(plt.Circle((obstacles[0], obstacles[1]), obstacles[2], color='b'))
