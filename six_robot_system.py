@@ -1,11 +1,11 @@
+import helper_functions as mf
+import ompl_demo as odm
 from ompl import util as ou
 from ompl import base as ob
 from ompl import geometric as og
 from math import sqrt
 from sys import argv
 import argparse
-import myFunc as mf
-import ompl_demo as odm
 import matplotlib.pyplot as plt
 from scipy.ndimage.filters import gaussian_filter as scipy_gaussian
 import numpy as np

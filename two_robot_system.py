@@ -1,11 +1,11 @@
+import helper_functions as mf
+import ompl_demo as odm
 from ompl import util as ou
 from ompl import base as ob
 from ompl import geometric as og
 from math import sqrt
 from sys import argv
 import argparse
-import myFunc as mf
-import ompl_demo as odm
 import matplotlib.pyplot as plt
 from scipy.ndimage.filters import gaussian_filter as scipy_gaussian
 import numpy as np
@@ -92,13 +92,7 @@ for i in range(long_path.shape[0]-1, 0, -1):
 	b = [bot1_path_smooth_bck[-1][0] - long_path[i-1][0] , bot1_path_smooth_bck[-1][1] - long_path[i-1][1]]
 	if np.cross(a,b) < 0:
 		bot1_path_smooth_bck = np.append(bot1_path_smooth_bck, next_pt, axis = 0)
-#	else:
-#		print "Pass"
-#		ax.add_patch(plt.Circle((long_path[i][0], long_path[i][1]), 0.01, color='r'))
-#		bot1_path_smooth_bck = np.append(bot1_path_smooth_bck, np.array([[np.nan, np.nan]]), axis = 0)
-			
-#		bot1_path_smooth = np.append(bot1_path_smooth, [bot1_path_smooth[-1]], axis = 0)
-	
+
 
 
 bot1_path_smooth = np.array([[0,0]])
@@ -114,95 +108,6 @@ print bot1_path_smooth.shape
 
 
 
-
-##########################################################################################
-#
-#
-#bot2_path = np.array([[0,0]])
-#bot2_dist = np.array([0.5-mf.bot_rad])
-#for i in range(1, long_path.shape[0]):
-##for i in range(40, 51):
-#	final_dist = 10
-#	final_intersection = ()
-#	for obstacles in mf.circularObstacles:
-#		if (not mf.circleOnLeft(long_path[i-1], long_path[i], obstacles)):
-#			ret, intersection = mf.intersectWithCircle(tuple(long_path[i]), tuple(long_path[i-1]), (obstacles[0], obstacles[1]), obstacles[2], -np.pi/2)
-#			if ret == True:
-#				current_dist = mf.distance_between_points(intersection[0], intersection[1], long_path[i][0], long_path[i][1])
-#				if current_dist<final_dist:
-#					final_dist = current_dist
-##					final_intersection = intersection
-#
-#	current_theta = math.atan2(float(long_path[i][1] - long_path[i-1][1]), float(long_path[i][0] - long_path[i-1][0]))
-#        bot2_theta = current_theta - math.pi/2
-#
-#	if final_dist > 0.5:
-#		bot2_path = np.append(bot2_path, [[long_path[i][0] + (0.5-mf.bot_rad) * np.cos(bot2_theta), long_path[i][1] + (0.5-mf.bot_rad) * np.sin(bot2_theta)]], axis = 0)
-#		bot2_dist = np.append(bot2_dist, [(0.5-mf.bot_rad)], axis = 0)
-#	else:
-#		bot2_path = np.append(bot2_path, [[long_path[i][0] + (final_dist - mf.bot_rad) * np.cos(bot2_theta), long_path[i][1] + (final_dist - mf.bot_rad) * np.sin(bot2_theta)]], axis = 0)
-#		bot2_dist = np.append(bot2_dist, [(final_dist-mf.bot_rad)], axis = 0)
-#
-#bot2_dist_initial = np.copy(bot2_dist)
-#bot2_dist = scipy.ndimage.minimum_filter1d(bot2_dist,size=25)
-#bot2_dist = scipy_gaussian(bot2_dist,sigma=8)
-##bot2_dist = scipy.ndimage.median_filter(bot2_dist,size=10)
-##bot2_dist = scipy_gaussian(bot2_dist,sigma=3)
-##bot2_dist = scipy_gaussian(bot2_dist,sigma=10)
-#
-#
-#bot2_path_smooth_fwd = np.array([[0,0]])
-#bot2_forward_path = np.array([[0,0]])
-#for i in range(1, long_path.shape[0]):
-##	ax.add_patch(plt.Circle((bot2_path_smooth[-1][0], bot2_path_smooth[-1][1]), mf.bot_rad, color='g'))
-#	current_theta = math.atan2(float(long_path[i][1] - long_path[i-1][1]), float(long_path[i][0] - long_path[i-1][0]))
-#	bot2_theta = current_theta - math.pi/2
-#	next_pt =np.array([[long_path[i][0] + (bot2_dist[i]) * np.cos(bot2_theta), long_path[i][1] + (bot2_dist[i]) * np.sin(bot2_theta)]])
-#	a = [next_pt[0][0] - long_path[i-1][0] , next_pt[0][1] - long_path[i-1][1]]
-#	b = [bot2_path_smooth_fwd[-1][0] - long_path[i-1][0] , bot2_path_smooth_fwd[-1][1] - long_path[i-1][1]]
-#	if np.cross(a,b) < 0:
-#		bot2_path_smooth_fwd = np.append(bot2_path_smooth_fwd, next_pt, axis = 0)
-#		bot2_forward_path = np.append(bot2_forward_path, next_pt, axis = 0)
-#	else:
-##		print "Pass"
-##		ax.add_patch(plt.Circle((long_path[i][0], long_path[i][1]), 0.01, color='r'))
-#		bot2_forward_path = np.append(bot2_forward_path, np.array([[np.nan, np.nan]]), axis = 0)
-#			
-#		
-#
-#
-#bot2_path_smooth_bck = np.array([[10,10]])
-#for i in range(long_path.shape[0]-1, 0, -1):
-##	ax.add_patch(plt.Circle((bot2_path_smooth[-1][0], bot2_path_smooth[-1][1]), mf.bot_rad, color='g'))
-#	current_theta = math.atan2(float(long_path[i-1][1] - long_path[i][1]), float(long_path[i-1][0] - long_path[i][0]))
-#	bot2_theta = current_theta + math.pi/2
-#	next_pt =np.array([[long_path[i][0] + (bot2_dist[i]) * np.cos(bot2_theta), long_path[i][1] + (bot2_dist[i]) * np.sin(bot2_theta)]])
-#	a = [next_pt[0][0] - long_path[i-1][0] , next_pt[0][1] - long_path[i-1][1]]
-#	b = [bot2_path_smooth_bck[-1][0] - long_path[i-1][0] , bot2_path_smooth_bck[-1][1] - long_path[i-1][1]]
-#	if np.cross(a,b) > 0:
-#		bot2_path_smooth_bck = np.append(bot2_path_smooth_bck, next_pt, axis = 0)
-##	else:
-##		print "Pass"
-##		ax.add_patch(plt.Circle((long_path[i][0], long_path[i][1]), 0.01, color='r'))
-##		bot2_path_smooth_bck = np.append(bot2_path_smooth_bck, np.array([[np.nan, np.nan]]), axis = 0)
-#			
-##		bot2_path_smooth = np.append(bot2_path_smooth, [bot2_path_smooth[-1]], axis = 0)
-#	
-#
-#
-#bot2_path_smooth = np.array([[0,0]])
-##print bot2_path_smooth_fwd.shape, bot2_path_smooth_bck[6]
-#for  k in range(bot2_forward_path.shape[0]):
-##	print path_point.shape, bot2_path_smooth.shape
-#	if bot2_forward_path[k].tolist() in bot2_path_smooth_bck.tolist():
-#		bot2_path_smooth = np.append(bot2_path_smooth, [bot2_forward_path[k]], axis=0)
-#	else:
-#		bot2_path_smooth = np.append(bot2_path_smooth, [[np.nan, np.nan]], axis=0)
-#
-#print bot2_path_smooth.shape
-#
-#
-###########################################################################################
 
 bot2_path_smooth = mf.right_bot_path_generator(long_path, (-math.pi/2))
 print bot2_path_smooth
@@ -228,23 +133,6 @@ bot2x, bot2y = bot2_path_smooth.T
 ax.plot(bot2x, bot2y, 'ro-')
 
 
-#bot1x, bot1y = bot1_path_smooth.T
-#ax.plot(bot1x, bot1y, 'go-')
-#
-#bot2x, bot2y = bot2_path_smooth.T
-#ax.plot(bot2x, bot2y, 'ro-')
-#
-#
-#pathX, pathY = long_path.T
-#ax.plot(pathX, pathY, 'bo')
-#bot1x, bot1y = bot1_path.T
-#ax.plot(bot1x, bot1y, 'r-')
-#
-##bot1x, bot1y = bot1_path_smooth_fwd.T
-##ax.plot(bot1x, bot1y, 'bo')
-##plt.cla()
-#ax1.plot(bot2_dist_initial, 'ro')
-#ax1.plot(bot2_dist, 'go')
 plt.show()
 exit()
 
